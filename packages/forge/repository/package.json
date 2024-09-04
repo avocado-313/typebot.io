@@ -17,6 +17,8 @@
     "@typebot.io/anthropic-block": "workspace:*",
     "@typebot.io/together-ai-block": "workspace:*",
     "@typebot.io/open-router-block": "workspace:*",
-    "@typebot.io/nocodb-block": "workspace:*"
+    "@typebot.io/nocodb-block": "workspace:*",
+    "@typebot.io/assign-chat-block": "workspace:*",
+    "@typebot.io/close-chat-block": "workspace:*"
   }
 }

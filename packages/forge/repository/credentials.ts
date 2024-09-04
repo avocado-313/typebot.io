@@ -16,6 +16,8 @@ import { togetherAiBlock } from '@typebot.io/together-ai-block'
 import { togetherAiCredentialsSchema } from '@typebot.io/together-ai-block/schemas'
 import { nocodbBlock } from '@typebot.io/nocodb-block'
 import { nocodbCredentialsSchema } from '@typebot.io/nocodb-block/schemas'
+import { assignChatBlock } from '@typebot.io/assign-chat-block'
+import { assignChatCredentialsSchema } from '@typebot.io/assign-chat-block/schemas'
 
 export const forgedCredentialsSchemas = {
   [openAIBlock.id]: openAICredentialsSchema,
@@ -27,4 +29,5 @@ export const forgedCredentialsSchemas = {
   [togetherAiBlock.id]: togetherAiCredentialsSchema,
   [openRouterBlock.id]: openRouterCredentialsSchema,
   [nocodbBlock.id]: nocodbCredentialsSchema,
+  [assignChatBlock.id]: assignChatCredentialsSchema,
 }

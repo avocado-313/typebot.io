@@ -21,6 +21,10 @@ import { togetherAiBlock } from '@typebot.io/together-ai-block'
 import { togetherAiBlockSchema } from '@typebot.io/together-ai-block/schemas'
 import { nocodbBlock } from '@typebot.io/nocodb-block'
 import { nocodbBlockSchema } from '@typebot.io/nocodb-block/schemas'
+import { assignChatBlock } from '@typebot.io/assign-chat-block'
+import { assignChatBlockSchema } from '@typebot.io/assign-chat-block/schemas'
+import { closeChatBlock } from '@typebot.io/close-chat-block'
+import { closeChatBlockSchema } from '@typebot.io/close-chat-block/schemas'
 
 export const forgedBlockSchemas = {
   [openAIBlock.id]: openAIBlockSchema,
@@ -34,4 +38,6 @@ export const forgedBlockSchemas = {
   [togetherAiBlock.id]: togetherAiBlockSchema,
   [openRouterBlock.id]: openRouterBlockSchema,
   [nocodbBlock.id]: nocodbBlockSchema,
+  [assignChatBlock.id]: assignChatBlockSchema,
+  [closeChatBlock.id]: closeChatBlockSchema,
 }
