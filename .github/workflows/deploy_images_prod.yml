@@ -1,6 +1,5 @@
 name: Deploy Production Images
 
-## deploy on release-v* release published
 on:
   release:
     types: [published]
@@ -23,7 +22,7 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
-          docker build --build-arg "SCOPE=${{ matrix.app }}" -t twerlo/typebot-${{ matrix.app }}:prod .
+          docker build --build-arg "SCOPE=${{ matrix.app }}" -t twerlo/typebot-${{ matrix.app }}:prd .
 
       - name: Push Docker image to Docker Hub
-        run: docker push twerlo/typebot-${{ matrix.app }}:prod
+        run: docker push twerlo/typebot-${{ matrix.app }}:prd
