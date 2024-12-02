@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react'
 import assert from 'assert'
 import {
-  BookIcon,
+  // BookIcon,
   BracesIcon,
   DownloadIcon,
   MoreVerticalIcon,
@@ -48,8 +48,8 @@ export const BoardMenuButton = (props: StackProps) => {
     setIsDownloading(false)
   }
 
-  const redirectToDocumentation = () =>
-    window.open('https://docs.typebot.io/editor/graph', '_blank')
+  // const redirectToDocumentation = () =>
+  //   window.open('https://docs.typebot.io/editor/graph', '_blank')
 
   return (
     <HStack rounded="md" spacing="4" {...props}>
@@ -71,9 +71,9 @@ export const BoardMenuButton = (props: StackProps) => {
           bgColor={useColorModeValue('white', undefined)}
         />
         <MenuList>
-          <MenuItem icon={<BookIcon />} onClick={redirectToDocumentation}>
+          {/* <MenuItem icon={<BookIcon />} onClick={redirectToDocumentation}>
             {t('editor.graph.menu.documentationItem.label')}
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem icon={<SettingsIcon />} onClick={onOpen}>
             {t('editor.graph.menu.editorSettingsItem.label')}
           </MenuItem>
