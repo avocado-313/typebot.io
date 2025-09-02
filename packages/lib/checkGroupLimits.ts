@@ -3,6 +3,13 @@ export interface GroupLimitResponse {
   error?: string
 }
 
+// New API response format
+export interface ApiResponse {
+  id: string
+  limit: number
+  type: number
+}
+
 export const checkGroupLimits = async (
   workspaceId: string
 ): Promise<GroupLimitResponse> => {
@@ -13,7 +20,9 @@ export const checkGroupLimits = async (
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-SIGNATURE': process.env.HUB_API_SIGNATURE,
+          ...(process.env.HUB_API_SIGNATURE && {
+            'X-API-SIGNATURE': process.env.HUB_API_SIGNATURE,
+          }),
         },
       }
     )
@@ -22,9 +31,9 @@ export const checkGroupLimits = async (
       throw new Error(`API returned ${response.status}`)
     }
 
-    const data = await response.json()
+    const data: ApiResponse = await response.json()
     return {
-      maxGroups: data.maxGroups || 0,
+      maxGroups: data.limit || 0,
     }
   } catch (error) {
     console.error('Failed to fetch group limits:', error)
@@ -42,13 +51,13 @@ export const shouldUnpublishTypebot = async (
 ): Promise<boolean> => {
   try {
     const limits = await checkGroupLimits(workspaceId)
-    
+
     // Safety checks
     if (limits.maxGroups <= 0) {
       // If no groups allowed or API failed, don't unpublish (conservative approach)
       return false
     }
-    
+
     return currentGroupCount > limits.maxGroups
   } catch {
     // If API fails, don't unpublish (conservative approach)
@@ -63,13 +72,13 @@ export const canAddMoreGroups = async (
 ): Promise<boolean> => {
   try {
     const limits = await checkGroupLimits(workspaceId)
-    
+
     // Safety checks
     if (limits.maxGroups <= 0) {
       // If no groups allowed or API failed, don't allow adding groups
       return false
     }
-    
+
     return currentGroupCount < limits.maxGroups
   } catch {
     // If API fails, don't allow adding groups (conservative approach)

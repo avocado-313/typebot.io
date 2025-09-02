@@ -76,9 +76,12 @@ const groupsActions = (
       })
     })
 
-    const canAdd = await canAddMoreGroups(typebot.id, typebot.groups.length)
+    const canAdd = await canAddMoreGroups(
+      typebot.workspaceId,
+      typebot.groups.length
+    )
     if (!canAdd) {
-      const limits = await checkGroupLimits(typebot.id)
+      const limits = await checkGroupLimits(typebot.workspaceId)
       if (limits.maxGroups === 0) {
         showToast({
           title: 'Group Limits Unavailable',
@@ -164,9 +167,12 @@ const groupsActions = (
       })
     })
 
-    const canAdd = await canAddMoreGroups(typebot.id, typebot.groups.length)
+    const canAdd = await canAddMoreGroups(
+      typebot.workspaceId,
+      typebot.groups.length
+    )
     if (!canAdd) {
-      const limits = await checkGroupLimits(typebot.id)
+      const limits = await checkGroupLimits(typebot.workspaceId)
       if (limits.maxGroups === 0) {
         showToast({
           title: 'Group Limits Unavailable',
@@ -265,11 +271,11 @@ const groupsActions = (
     })
 
     const canAdd = await canAddMoreGroups(
-      typebot.id,
+      typebot.workspaceId,
       typebot.groups.length + groups.length
     )
     if (!canAdd) {
-      const limits = await checkGroupLimits(typebot.id)
+      const limits = await checkGroupLimits(typebot.workspaceId)
       if (limits.maxGroups === 0) {
         showToast({
           title: 'Group Limits Unavailable',

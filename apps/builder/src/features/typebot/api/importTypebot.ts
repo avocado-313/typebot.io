@@ -147,9 +147,8 @@ export const importTypebot = authenticatedProcedure
 
     // Check group limits for the imported typebot
     if (groups.length > 0) {
-      // Create a temporary typebot to check limits
-      const tempTypebotId = `temp-${Date.now()}`
-      const limits = await checkGroupLimits(tempTypebotId)
+      // Check limits using workspace ID
+      const limits = await checkGroupLimits(workspaceId)
 
       if (limits.maxGroups > 0 && groups.length > limits.maxGroups) {
         throw new TRPCError({
@@ -195,7 +194,7 @@ export const importTypebot = authenticatedProcedure
 
     // Check if the imported typebot should be automatically unpublished due to group limits
     if (groups.length > 0) {
-      const limits = await checkGroupLimits(parsedNewTypebot.id)
+      const limits = await checkGroupLimits(workspaceId)
 
       if (limits.maxGroups > 0 && groups.length > limits.maxGroups) {
         // Update the typebot to remove publicId (unpublish it)
