@@ -9,6 +9,11 @@ export const checkGroupLimits = async (
   workspaceId: string
 ): Promise<GroupLimitResponse> => {
   try {
+    console.log('HUB URL: ', process.env.HUB_URL)
+    console.log('HUB URL ENV: ', env.HUB_URL)
+    console.log('HUB Signature: ', process.env.HUB_API_SIGNATURE)
+    console.log('HUB Signature ENV: ', env.HUB_API_SIGNATURE)
+
     const response = await fetch(
       `${env.HUB_URL}/api/v1/item/${workspaceId}/typebot`,
       {
