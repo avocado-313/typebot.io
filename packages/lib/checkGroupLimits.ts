@@ -9,11 +9,12 @@ export const checkGroupLimits = async (
   workspaceId: string
 ): Promise<GroupLimitResponse> => {
   try {
+    const maxGroupsNumber = Number(env.NEXT_PUBLIC_HUB_MAX_GROUPS)
     // Use environment variable for hub URL, fallback to hardcoded URL if not set
     const hubUrl = env.NEXT_PUBLIC_HUB_URL || 'https://bot.avocad0.dev'
 
     const response = await fetch(
-      `${hubUrl}/api/v1/item/${workspaceId}/typbot`,
+      `${hubUrl}/api/v1/item/${workspaceId}/typbot?max_no_components=${maxGroupsNumber}`,
       {
         method: 'GET',
         headers: {
@@ -30,7 +31,7 @@ export const checkGroupLimits = async (
 
     if (!response.ok) {
       return {
-        maxGroups: Number(env.NEXT_PUBLIC_HUB_MAX_GROUPS) || 0,
+        maxGroups: maxGroupsNumber || 0,
         error: 'cannot call the api',
       }
     }
