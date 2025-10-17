@@ -8,29 +8,33 @@ export interface GroupLimitResponse {
 export const checkGroupLimits = async (
   workspaceId: string
 ): Promise<GroupLimitResponse> => {
+  const maxGroupsNumber = Number(env.NEXT_PUBLIC_HUB_MAX_GROUPS)
   try {
     // Use environment variable for hub URL, fallback to hardcoded URL if not set
     const hubUrl = env.NEXT_PUBLIC_HUB_URL || 'https://bot.avocad0.dev'
 
-    const response = await fetch(
-      `${hubUrl}/api/v1/item/${workspaceId}/typbot`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(hubUrl.includes('ngrok') && {
-            'ngrok-skip-browser-warning': '69420',
-          }),
-          ...(env.NEXT_PUBLIC_HUB_API_SIGNATURE && {
-            'X-API-SIGNATURE': env.NEXT_PUBLIC_HUB_API_SIGNATURE,
-          }),
-        },
-      }
-    )
+    const baseUrl = `${hubUrl}/api/v1/item/${workspaceId}/typbot`
+    const shouldSendMax = Number.isFinite(maxGroupsNumber)
+    const requestUrl = shouldSendMax
+      ? `${baseUrl}?max_no_components=${maxGroupsNumber}`
+      : baseUrl
+
+    const response = await fetch(requestUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(hubUrl.includes('ngrok') && {
+          'ngrok-skip-browser-warning': '69420',
+        }),
+        ...(env.NEXT_PUBLIC_HUB_API_SIGNATURE && {
+          'X-API-SIGNATURE': env.NEXT_PUBLIC_HUB_API_SIGNATURE,
+        }),
+      },
+    })
 
     if (!response.ok) {
       return {
-        maxGroups: Number(env.NEXT_PUBLIC_HUB_MAX_GROUPS) || 0,
+        maxGroups: maxGroupsNumber || 0,
         error: 'cannot call the api',
       }
     }
@@ -38,12 +42,11 @@ export const checkGroupLimits = async (
     const data = await response.json()
 
     return {
-      maxGroups:
-        data.data?.limit || Number(env.NEXT_PUBLIC_HUB_MAX_GROUPS) || 0,
+      maxGroups: data.data?.limit || maxGroupsNumber || 0,
     }
   } catch (error) {
     return {
-      maxGroups: Number(env.NEXT_PUBLIC_HUB_MAX_GROUPS) || 0,
+      maxGroups: maxGroupsNumber || 0,
       error: error instanceof Error ? error.message : 'Unknown error',
     }
   }
