@@ -423,6 +423,22 @@ const keycloakEnv = {
   },
 }
 
+const hubEnv = {
+  client: {
+    NEXT_PUBLIC_HUB_URL: z.string().optional(),
+    NEXT_PUBLIC_HUB_API_SIGNATURE: z.string().optional(),
+    NEXT_PUBLIC_HUB_MAX_GROUPS: z.string().optional(),
+  },
+  runtimeEnv: {
+    NEXT_PUBLIC_HUB_URL: getRuntimeVariable('NEXT_PUBLIC_HUB_URL'),
+    NEXT_PUBLIC_HUB_API_SIGNATURE: getRuntimeVariable(
+      'NEXT_PUBLIC_HUB_API_SIGNATURE'
+    ),
+    NEXT_PUBLIC_HUB_MAX_GROUPS: getRuntimeVariable(
+      'NEXT_PUBLIC_HUB_MAX_GROUPS'
+    ),
+  },
+}
 export const env = createEnv({
   server: {
     ...baseEnv.server,
@@ -446,6 +462,7 @@ export const env = createEnv({
   client: {
     ...baseEnv.client,
     ...smtpEnv.client,
+    ...hubEnv.client,
     ...googleEnv.client,
     ...stripeEnv.client,
     ...giphyEnv.client,
@@ -459,6 +476,7 @@ export const env = createEnv({
   experimental__runtimeEnv: {
     ...baseEnv.runtimeEnv,
     ...smtpEnv.runtimeEnv,
+    ...hubEnv.runtimeEnv,
     ...googleEnv.runtimeEnv,
     ...stripeEnv.runtimeEnv,
     ...giphyEnv.runtimeEnv,

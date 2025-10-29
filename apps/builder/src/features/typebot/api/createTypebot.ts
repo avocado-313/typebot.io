@@ -38,7 +38,7 @@ export const createTypebot = authenticatedProcedure
       method: 'POST',
       path: '/v1/typebots',
       protect: true,
-      summary: 'Create a typebot',
+      summary: 'Create a bot',
       tags: ['Typebot'],
     },
   })
@@ -58,13 +58,32 @@ export const createTypebot = authenticatedProcedure
       where: { id: workspaceId },
       select: { id: true, members: true, plan: true },
     })
-    const userRole = getUserRoleInWorkspace(user.id, workspace?.members)
+    const userRole = getUserRoleInWorkspace(
+      user.id,
+      workspace?.members,
+      user.email ?? undefined
+    )
     if (
       userRole === undefined ||
       userRole === WorkspaceRole.GUEST ||
       !workspace
     )
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Workspace not found' })
+
+    // Check if workspace already has 5 typebots
+    const existingTypebotCount = await prisma.typebot.count({
+      where: {
+        workspaceId,
+        isArchived: { not: true },
+      },
+    })
+
+    if (existingTypebotCount >= 5) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Maximum limit of 5 typebots reached for this workspace',
+      })
+    }
 
     if (
       typebot.customDomain &&

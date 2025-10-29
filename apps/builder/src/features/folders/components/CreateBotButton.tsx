@@ -27,7 +27,7 @@ export const CreateBotButton = ({
       onClick={handleClick}
       paddingX={6}
       whiteSpace={'normal'}
-      colorScheme="blue"
+      colorScheme="orange"
       opacity={draggedTypebot ? 0.3 : 1}
       {...props}
     >
@@ -40,7 +40,7 @@ export const CreateBotButton = ({
           textAlign="center"
           mt="6"
         >
-          {t('folders.createTypebotButton.label')}
+          {t('folders.createbotButton.label')}
         </Text>
       </VStack>
     </Button>
