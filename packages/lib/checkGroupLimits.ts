@@ -41,8 +41,34 @@ export const checkGroupLimits = async (
 
     const data = await response.json()
 
+    // Check multiple possible response structures
+    const apiLimit = data.data?.limit ?? data.limit
+
+    console.log('Typebot Service Response: apiLimit', apiLimit)
+
+    if (
+      apiLimit !== undefined &&
+      apiLimit !== null &&
+      Number.isFinite(Number(apiLimit))
+    ) {
+      const limitValue = Number(apiLimit)
+      if (limitValue > 0) {
+        return {
+          maxGroups: limitValue,
+        }
+      }
+    }
+
+    // If API succeeded but limit is missing or invalid, log error and use env as fallback
+    console.warn(
+      `API call succeeded but limit is missing or invalid. Response:`,
+      JSON.stringify(data),
+      `Tried paths: data.data?.limit, data.limit, data.data?.maxGroups, data.maxGroups`
+    )
+    console.log('Typebot Service Response: maxGroupsNumber', maxGroupsNumber)
     return {
-      maxGroups: data.data?.limit || maxGroupsNumber || 0,
+      maxGroups: maxGroupsNumber || 0,
+      error: 'API limit missing or invalid',
     }
   } catch (error) {
     return {
@@ -59,17 +85,31 @@ export const shouldUnpublishTypebot = async (
   try {
     const limits = await checkGroupLimits(workspaceId)
 
+    // If there was an error fetching limits, don't unpublish (conservative approach)
+    if (limits.error) {
+      console.warn(
+        `Failed to fetch group limits for workspace ${workspaceId}: ${limits.error}. Using fallback limit: ${limits.maxGroups}`
+      )
+      // If API failed, don't unpublish (conservative approach)
+      return false
+    }
+
     // Safety checks
     if (limits.maxGroups <= 0) {
-      console.error(
-        'Failed to fetch group limits limits invalid: Cannot Call API'
-      )
+      console.error('Failed to fetch group limits: limit is invalid or zero')
       // If no groups allowed or API failed, don't unpublish (conservative approach)
       return false
     }
 
-    return currentGroupCount > limits.maxGroups
-  } catch {
+    const shouldUnpublish = currentGroupCount > limits.maxGroups
+    if (shouldUnpublish) {
+      console.log(
+        `Typebot should be unpublished: ${currentGroupCount} groups > ${limits.maxGroups} limit`
+      )
+    }
+    return shouldUnpublish
+  } catch (error) {
+    console.error('Error in shouldUnpublishTypebot:', error)
     // If API fails, don't unpublish (conservative approach)
     return false
   }
