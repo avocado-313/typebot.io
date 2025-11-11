@@ -30,7 +30,7 @@ import { TypebotNotFoundPage } from '@/features/editor/components/TypebotNotFoun
 import { integrationsList } from './embeds/EmbedButton'
 import { isPublished as isPublishedHelper } from '../helpers/isPublished'
 import { trpc } from '@/lib/trpc'
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 
 export const SharePage = () => {
   const { t } = useTranslate()
@@ -64,7 +64,7 @@ export const SharePage = () => {
     })
 
   // Function to check group limits and auto-unpublish if needed
-  const checkAndAutoUnpublish = async () => {
+  const checkAndAutoUnpublish = useCallback(async () => {
     if (!typebot || !workspace || !typebot.publicId) return
 
     try {
@@ -83,14 +83,14 @@ export const SharePage = () => {
     } catch (error) {
       console.error('Failed to check group limits for auto-unpublish:', error)
     }
-  }
+  }, [typebot, workspace, unpublishTypebotMutate])
 
   // Check group limits when component mounts or when typebot/workspace changes
   useEffect(() => {
     if (typebot && workspace && typebot.publicId) {
       checkAndAutoUnpublish()
     }
-  }, [typebot, workspace])
+  }, [typebot, workspace, checkAndAutoUnpublish])
 
   // Continuous monitoring for group limit changes
   useEffect(() => {
@@ -101,7 +101,7 @@ export const SharePage = () => {
     }, 30000) // Check every 30 seconds
 
     return () => clearInterval(checkInterval)
-  }, [typebot, workspace])
+  }, [typebot, workspace, checkAndAutoUnpublish])
 
   const handlePublicIdChange = async (publicId: string) => {
     updateTypebot({ updates: { publicId }, save: true })
