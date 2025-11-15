@@ -14,7 +14,7 @@ jobs:
           node-version: 18
 
       - name: Run PR reminder script
-        uses: actions/github-script@60cf71fe98ea74c52f9295f3d8b1c0e59e95da65
+        uses: actions/github-script@8c7c012f9b5ab5bdbc832ab5504cc4044b22a929
         env:
           ZOHO_BOT_PRs_REMINDERS_WH_URL: ${{ secrets.ZOHO_BOT_PRs_REMINDERS_WH_URL }}
         with:
