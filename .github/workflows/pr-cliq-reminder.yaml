@@ -36,25 +36,23 @@ jobs:
               const ageDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
 
               if (ageDays >= thresholdDays) {
-                const reviewers =
-                  pr.requested_reviewers.map(r => r.login).join(', ') || 'None';
+                const reviewers = pr.requested_reviewers.map(r => r.login).join(', ') || 'None';
 
-                const message = {
-                  text:
-                    `PR Reminder:\n` +
-                    `- Repo: ${context.repo.repo}\n` +
-                    `- Title: ${pr.title}\n` +
-                    `- Author: ${pr.user.login}\n` +
-                    `- Reviewers: ${reviewers}\n` +
-                    `- Age: ${ageDays} day(s)\n` +
-                    `- Link: ${pr.html_url}`
+                const payload = {
+                  repo: context.repo.repo,
+                  title: pr.title,
+                  author: pr.user.login,
+                  reviewers: reviewers,
+                  age: ageDays,
+                  url: pr.html_url
                 };
 
-                // Native fetch (Node 18+)
+                console.log("Sending payload:", JSON.stringify(payload));
+
                 await fetch(webhookUrl, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(message)
+                  body: JSON.stringify(payload)
                 });
               }
-            };
+            }
