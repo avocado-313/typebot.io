@@ -1,54 +1,60 @@
 name: "PR Reminder to Zoho Cliq"
 
 on:
-  # schedule:
-  #   - cron: "0 10 * * *"  # daily at 10:00
-  workflow_dispatch:       # optional manual trigger
+  workflow_dispatch:
 
 jobs:
   pr-reminder:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check open PRs
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
         with:
-            node-version: 18
-      - uses: actions/github-script@60cf71fe98ea74c52f9295f3d8b1c0e59e95da65
+          node-version: 18
+
+      - name: Run PR reminder script
+        uses: actions/github-script@60cf71fe98ea74c52f9295f3d8b1c0e59e95da65
+        env:
+          ZOHO_BOT_PRs_REMINDERS_WH_URL: ${{ secrets.ZOHO_BOT_PRs_REMINDERS_WH_URL }}
         with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            script: |
-              const thresholdDays = 1; // X days
-              const webhookUrl = process.env.ZOHO_BOT_PRs_REMINDERS_WH_URL;
-              const { data: prs } = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                state: 'open'
-              });
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const thresholdDays = 1;
+            const webhookUrl = process.env.ZOHO_BOT_PRs_REMINDERS_WH_URL;
 
-              const now = new Date();
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
 
-              for (const pr of prs) {
-                const createdAt = new Date(pr.created_at);
-                const ageDays = Math.floor((now - createdAt)/(1000*60*60*24));
+            const now = new Date();
 
-                if (ageDays >= thresholdDays) {
-                  const reviewers = pr.requested_reviewers.map(r => r.login).join(', ') || 'None';
-                  const message = `PR Reminder:
-                                  - Repo: ${context.repo.repo}
-                                  - Title: ${pr.title}
-                                  - Author: ${pr.user.login}
-                                  - Reviewers: ${reviewers}
-                                  - Age: ${ageDays} day(s)
-                                  - Link: ${pr.html_url}`;
+            for (const pr of prs) {
+              const createdAt = new Date(pr.created_at);
+              const ageDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
 
-                  // send message to Zoho Cliq
-                  await require('node-fetch')(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: message })
-                  });
-                }
+              if (ageDays >= thresholdDays) {
+                const reviewers =
+                  pr.requested_reviewers.map(r => r.login).join(', ') || 'None';
+
+                const message = {
+                  text:
+                    `PR Reminder:\n` +
+                    `- Repo: ${context.repo.repo}\n` +
+                    `- Title: ${pr.title}\n` +
+                    `- Author: ${pr.user.login}\n` +
+                    `- Reviewers: ${reviewers}\n` +
+                    `- Age: ${ageDays} day(s)\n` +
+                    `- Link: ${pr.html_url}`
+                };
+
+                // Native fetch (Node 18+)
+                await fetch(webhookUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(message)
+                });
               }
-          env:
-            ZOHO_BOT_PRs_REMINDERS_WH_URL: ${{ secrets.ZOHO_BOT_PRs_REMINDERS_WH_URL }}
+            };
