@@ -40,6 +40,7 @@ const typebotUpdateSchemaPick = {
   riskLevel: true,
   events: true,
   updatedAt: true,
+  workspaceId: true,
 } as const
 
 export const updateTypebot = authenticatedProcedure
@@ -217,6 +218,7 @@ export const updateTypebot = authenticatedProcedure
         }),
         isClosed: typebot.isClosed,
         whatsAppCredentialsId: typebot.whatsAppCredentialsId ?? undefined,
+        workspaceId: typebot.workspaceId,
       },
     })
 
