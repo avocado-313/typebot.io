@@ -3,11 +3,11 @@ name: "PR Reminder to Zoho Cliq"
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 10 * * *"  # daily at 10:00 UTC
+    - cron: "0 8 * * 1-5"  # daily at 8:00 UTC, Mon-Fri
 
 jobs:
   pr-reminder:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Set up Node
@@ -22,7 +22,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const thresholdDays = 1;
+            // The Threshold of PRs which late more than 3 Days will be sent to Cliq Bot
+            const thresholdDays = 3;
             const webhookUrl = process.env.ZOHO_BOT_PRs_REMINDERS_WH_URL;
 
             const { data: prs } = await github.rest.pulls.list({
