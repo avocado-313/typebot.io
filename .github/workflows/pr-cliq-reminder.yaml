@@ -2,6 +2,8 @@ name: "PR Reminder to Zoho Cliq"
 
 on:
   workflow_dispatch:
+  schedule:
+  - cron: "0 10 * * *"  # daily at 10:00
 
 jobs:
   pr-reminder:
