@@ -3,7 +3,7 @@ name: "PR Reminder to Zoho Cliq"
 on:
   workflow_dispatch:
   schedule:
-  - cron: "0 10 * * *"  # daily at 10:00
+    - cron: "0 10 * * *"  # daily at 10:00 UTC
 
 jobs:
   pr-reminder:
@@ -38,18 +38,68 @@ jobs:
               const ageDays = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
 
               if (ageDays >= thresholdDays) {
-                const reviewers = pr.requested_reviewers.map(r => r.login).join(', ') || 'None';
+
+                //
+                // ===========================================================
+                // Reviewer Separation Logic
+                // ===========================================================
+                //
+
+                //
+                // 1. PENDING REVIEWERS
+                //
+
+                // Pending individuals (GitHub hasn't received a review yet)
+                const pendingIndividualReviewers =
+                  pr.requested_reviewers?.map(r => r.login) || [];
+
+                // Pending teams
+                const pendingTeamReviewers =
+                  pr.requested_teams?.map(t => t.name) || [];
+
+                // Combine pending (teams + individuals)
+                const pendingReviewers = [
+                  ...pendingIndividualReviewers,
+                  ...pendingTeamReviewers,
+                ];
+
+                //
+                // 2. COMPLETED REVIEWERS (users who submitted a review)
+                //
+
+                const { data: reviews } = await github.rest.pulls.listReviews({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number
+                });
+
+                // Extract unique reviewer usernames
+                const completedReviewers = Array.from(
+                  new Set(
+                    reviews
+                      .map(r => r.user && r.user.login)
+                      .filter(Boolean)
+                  )
+                );
+
+                //
+                // ===========================================================
+                // Build the final structured payload
+                // ===========================================================
+                //
 
                 const payload = {
                   repo: context.repo.repo,
                   title: pr.title,
                   author: pr.user.login,
-                  reviewers: reviewers,
-                  age: ageDays,
-                  url: pr.html_url
+                  age_days: ageDays,
+                  url: pr.html_url,
+
+                  pending_reviewers: pendingReviewers.length > 0 ? pendingReviewers : ['None'],
+                  completed_reviewers: completedReviewers.length > 0 ? completedReviewers : ['None']
                 };
 
-                console.log("Sending payload:", JSON.stringify(payload));
+                console.log("Sending payload:", JSON.stringify(payload, null, 2));
 
                 await fetch(webhookUrl, {
                   method: 'POST',
