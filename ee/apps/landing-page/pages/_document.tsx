@@ -22,6 +22,10 @@ class MyDocument extends Document {
           </noscript>
           {/* eslint-disable-next-line @next/next/no-sync-scripts */}
           <script src="/__ENV.js" />
+          {process.env.NODE_ENV === 'production' && (
+            // eslint-disable-next-line @next/next/no-sync-scripts
+            <script src="https://cdn.pagesense.io/js/twerlo/b248f0c246c44d168ef20849943ef125.js" />
+          )}
         </Head>
         <body style={{ backgroundColor: '#171923' }}>
           <ColorModeScript initialColorMode={theme.config.initialColorMode} />
