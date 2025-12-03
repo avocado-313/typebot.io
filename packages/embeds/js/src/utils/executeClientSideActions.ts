@@ -26,7 +26,7 @@ export const executeClientSideAction = async ({
   onMessageStream,
 }: Props): Promise<
   | { blockedPopupUrl: string }
-  | { replyToSend: string | undefined; logs?: ChatLog[] }
+  | { replyToSend: string | undefined; logs?: ChatLog[]; waitDuration?: number }
   | { logs: ChatLog[] }
   | void
 > => {
@@ -43,10 +43,14 @@ export const executeClientSideAction = async ({
     return executeRedirect(clientSideAction.redirect)
   }
   if ('wait' in clientSideAction) {
+    if (clientSideAction.expectsDedicatedReply) {
+      return {
+        replyToSend: undefined,
+        waitDuration: clientSideAction.wait.secondsToWaitFor,
+      }
+    }
     await executeWait(clientSideAction.wait)
-    return clientSideAction.expectsDedicatedReply
-      ? { replyToSend: undefined }
-      : undefined
+    return undefined
   }
   if ('setVariable' in clientSideAction) {
     return executeSetVariable(clientSideAction.setVariable.scriptToExecute)

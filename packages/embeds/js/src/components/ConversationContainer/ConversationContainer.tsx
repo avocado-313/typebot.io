@@ -98,6 +98,7 @@ export const ConversationContainer = (props: Props) => {
   const [isSending, setIsSending] = createSignal(false)
   const [blockedPopupUrl, setBlockedPopupUrl] = createSignal<string>()
   const [hasError, setHasError] = createSignal(false)
+  const [pendingWaitDuration, setPendingWaitDuration] = createSignal<number>()
 
   onMount(() => {
     ;(async () => {
@@ -148,6 +149,13 @@ export const ConversationContainer = (props: Props) => {
   ) => {
     setIsRecovered(false)
     setHasError(false)
+
+    const waitDuration = pendingWaitDuration()
+    if (waitDuration && waitDuration > 0) {
+      setPendingWaitDuration(undefined)
+      await new Promise((resolve) => setTimeout(resolve, waitDuration * 1000))
+    }
+
     const currentInputBlock = [...chatChunks()].pop()?.input
     if (currentInputBlock?.id && props.onAnswer && message)
       props.onAnswer({ message, blockId: currentInputBlock.id })
@@ -294,6 +302,10 @@ export const ConversationContainer = (props: Props) => {
       if (response && 'logs' in response) saveLogs(response.logs)
       if (response && 'replyToSend' in response) {
         setIsSending(false)
+        if ('waitDuration' in response && response.waitDuration) {
+          setPendingWaitDuration(response.waitDuration)
+          return
+        }
         sendMessage(response.replyToSend)
         return
       }

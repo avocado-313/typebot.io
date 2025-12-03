@@ -247,10 +247,7 @@ const executeClientSideAction =
   ): Promise<{ replyToSend: string | undefined } | void> => {
     if ('wait' in clientSideAction) {
       await new Promise((resolve) =>
-        setTimeout(
-          resolve,
-          Math.min(clientSideAction.wait.secondsToWaitFor, 10) * 1000
-        )
+        setTimeout(resolve, clientSideAction.wait.secondsToWaitFor * 1000)
       )
       if (!clientSideAction.expectsDedicatedReply) return
       return {
