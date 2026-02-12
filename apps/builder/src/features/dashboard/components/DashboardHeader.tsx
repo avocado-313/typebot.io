@@ -20,7 +20,8 @@ import { WorkspaceDropdown } from '@/features/workspace/components/WorkspaceDrop
 export const DashboardHeader = () => {
   const { t } = useTranslate()
   const { asPath, back, push } = useRouter()
-  const { workspace, switchWorkspace, createWorkspace } = useWorkspace()
+  const { workspace, workspaces, switchWorkspace, createWorkspace } =
+    useWorkspace()
   const { user, logOut } = useUser()
 
   const isRedirectFromCredentialsCreation = asPath.includes('preferences')
@@ -40,6 +41,8 @@ export const DashboardHeader = () => {
       push('/')
     }
   }
+
+  const hasMultipleWorkspaces = workspaces.length > 1
 
   return (
     <Flex w="full" borderBottomWidth="1px" justify="center">
@@ -79,12 +82,13 @@ export const DashboardHeader = () => {
               {t('workspace.settings.modal.menu.preferences.label')}
             </Button>
           )}
-          {user?.isAdmin && (
+          {(hasMultipleWorkspaces || user?.isAdmin) && (
             <WorkspaceDropdown
               currentWorkspace={workspace}
               onLogoutClick={logOut}
               onCreateNewWorkspaceClick={handleCreateNewWorkspace}
               onWorkspaceSelected={switchWorkspace}
+              canCreateWorkspace={!!user?.isAdmin}
             />
           )}
         </HStack>
