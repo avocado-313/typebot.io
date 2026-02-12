@@ -36,7 +36,6 @@ export const workspaceSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   name: z.string(),
-  version: z.number(),
   icon: z.string().nullable(),
   plan: z.nativeEnum(Plan),
   stripeId: z.string().nullable(),

@@ -34,33 +34,30 @@ export const createWorkspace = authenticatedProcedure
     })
   )
   .mutation(async ({ input: { name, icon }, ctx: { user } }) => {
-    const existingWorkspacesWithSameName = (await prisma.workspace.findMany({
+    const existingWorkspaceNames = (await prisma.workspace.findMany({
       where: {
-        name,
         members: {
           some: {
             userId: user.id,
           },
         },
       },
-      select: { version: true },
-    })) as Pick<Workspace, 'version'>[]
+      select: { name: true },
+    })) as Pick<Workspace, 'name'>[]
 
-    const nextVersion =
-      existingWorkspacesWithSameName.length === 0
-        ? 1
-        : Math.max(
-          ...existingWorkspacesWithSameName.map(
-            (workspace) => workspace.version ?? 1
-          )
-        ) + 1
+    const nameAlreadyUsed = existingWorkspaceNames.some(
+      (workspace) => workspace.name === name
+    )
+
+    const finalName = nameAlreadyUsed
+      ? `${name} ${new Date().toISOString()}`
+      : name
 
     const plan = parseWorkspaceDefaultPlan(user.email ?? '')
 
     const newWorkspace = (await prisma.workspace.create({
       data: {
-        name,
-        version: nextVersion,
+        name: finalName,
         icon,
         members: { create: [{ role: 'ADMIN', userId: user.id }] },
         plan,
@@ -73,7 +70,7 @@ export const createWorkspace = authenticatedProcedure
         workspaceId: newWorkspace.id,
         userId: user.id,
         data: {
-          name,
+          name: finalName,
           plan,
         },
       },
