@@ -24,6 +24,7 @@ type Props = {
   onWorkspaceSelected: (workspaceId: string) => void
   onCreateNewWorkspaceClick: () => void
   onLogoutClick: () => void
+  canCreateWorkspace?: boolean
 }
 
 export const WorkspaceDropdown = ({
@@ -31,6 +32,7 @@ export const WorkspaceDropdown = ({
   onWorkspaceSelected,
   onLogoutClick,
   onCreateNewWorkspaceClick,
+  canCreateWorkspace,
 }: Props) => {
   const { t } = useTranslate()
   const { data } = trpc.workspace.listWorkspaces.useQuery()
@@ -71,9 +73,11 @@ export const WorkspaceDropdown = ({
               </HStack>
             </MenuItem>
           ))}
-        <MenuItem onClick={onCreateNewWorkspaceClick} icon={<PlusIcon />}>
-          {t('workspace.dropdown.newButton.label')}
-        </MenuItem>
+        {canCreateWorkspace && (
+          <MenuItem onClick={onCreateNewWorkspaceClick} icon={<PlusIcon />}>
+            {t('workspace.dropdown.newButton.label')}
+          </MenuItem>
+        )}
         <MenuItem
           onClick={onLogoutClick}
           icon={<LogOutIcon />}
