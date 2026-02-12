@@ -34,28 +34,33 @@ export const createWorkspace = authenticatedProcedure
     })
   )
   .mutation(async ({ input: { name, icon }, ctx: { user } }) => {
-    const existingWorkspaceNames = (await prisma.workspace.findMany({
+    const existingWorkspacesWithSameName = (await prisma.workspace.findMany({
       where: {
+        name,
         members: {
           some: {
             userId: user.id,
           },
         },
       },
-      select: { name: true },
-    })) as Pick<Workspace, 'name'>[]
+      select: { version: true },
+    })) as Pick<Workspace, 'version'>[]
 
-    if (existingWorkspaceNames.some((workspace) => workspace.name === name))
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Workspace with same name already exists',
-      })
+    const nextVersion =
+      existingWorkspacesWithSameName.length === 0
+        ? 1
+        : Math.max(
+          ...existingWorkspacesWithSameName.map(
+            (workspace) => workspace.version ?? 1
+          )
+        ) + 1
 
     const plan = parseWorkspaceDefaultPlan(user.email ?? '')
 
     const newWorkspace = (await prisma.workspace.create({
       data: {
         name,
+        version: nextVersion,
         icon,
         members: { create: [{ role: 'ADMIN', userId: user.id }] },
         plan,

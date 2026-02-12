@@ -74,6 +74,7 @@ model Workspace {
   createdAt                     DateTime              @default(now())
   updatedAt                     DateTime              @default(now()) @updatedAt
   name                          String
+  version                       Int                   @default(1)
   icon                          String?
   plan                          Plan                  @default(FREE)
   stripeId                      String?               @unique
