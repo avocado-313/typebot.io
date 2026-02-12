@@ -45,17 +45,19 @@ export const createWorkspace = authenticatedProcedure
       select: { name: true },
     })) as Pick<Workspace, 'name'>[]
 
-    if (existingWorkspaceNames.some((workspace) => workspace.name === name))
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Workspace with same name already exists',
-      })
+    const nameAlreadyUsed = existingWorkspaceNames.some(
+      (workspace) => workspace.name === name
+    )
+
+    const finalName = nameAlreadyUsed
+      ? `${name} ${new Date().toISOString()}`
+      : name
 
     const plan = parseWorkspaceDefaultPlan(user.email ?? '')
 
     const newWorkspace = (await prisma.workspace.create({
       data: {
-        name,
+        name: finalName,
         icon,
         members: { create: [{ role: 'ADMIN', userId: user.id }] },
         plan,
@@ -68,7 +70,7 @@ export const createWorkspace = authenticatedProcedure
         workspaceId: newWorkspace.id,
         userId: user.id,
         data: {
-          name,
+          name: finalName,
           plan,
         },
       },
