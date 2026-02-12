@@ -1,6 +1,5 @@
 import prisma from '@typebot.io/lib/prisma'
 import { authenticatedProcedure } from '@/helpers/server/trpc'
-import { TRPCError } from '@trpc/server'
 import { Workspace, workspaceSchema } from '@typebot.io/schemas'
 import { z } from 'zod'
 import { parseWorkspaceDefaultPlan } from '../helpers/parseWorkspaceDefaultPlan'

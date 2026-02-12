@@ -215,7 +215,7 @@ export const TypebotProvider = ({
         if (shouldUnpublish) {
           // Call the unpublish API endpoint using tRPC
           try {
-            await unpublishTypebot({ typebotId: typebotId })
+            await unpublishTypebot({ typebotId })
           } catch (error) {
             console.error('Failed to call unpublish API:', error)
           }
@@ -238,7 +238,7 @@ export const TypebotProvider = ({
         console.error('Failed to check group limits for auto-unpublish:', error)
       }
     },
-    [setLocalTypebot, showToast]
+    [setLocalTypebot, showToast, unpublishTypebot]
   )
 
   useEffect(() => {
