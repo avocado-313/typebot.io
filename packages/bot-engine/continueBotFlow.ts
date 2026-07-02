@@ -206,7 +206,8 @@ export const continueBotFlow = async (
       isDefined(formattedReply)
         ? // Preserve the original reply type (e.g. 'location') so the saved
           // variable can keep the full structured value, not just the text.
-          { ...reply, text: formattedReply }
+          // Default type to 'text' first so location replies can override it.
+          ({ type: 'text' as const, ...reply, text: formattedReply } as Message)
         : undefined
     )
   }
