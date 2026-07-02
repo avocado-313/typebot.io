@@ -206,7 +206,8 @@ export const continueBotFlow = async (
       isDefined(formattedReply)
         ? // Preserve the original reply type (e.g. 'location') so the saved
           // variable can keep the full structured value, not just the text.
-          { ...reply, text: formattedReply }
+          // Default type to 'text' first so location replies can override it.
+          ({ type: 'text' as const, ...reply, text: formattedReply } as Message)
         : undefined
     )
   }
@@ -336,12 +337,13 @@ const saveAttachmentsVarIfAny = ({
 }): SessionState => {
   if (
     block.type !== InputBlockType.TEXT ||
+    reply.type !== 'text' ||
     !block.options?.attachments?.isEnabled ||
     !block.options?.attachments?.saveVariableId ||
     !reply.attachedFileUrls ||
     reply.attachedFileUrls.length === 0
   )
-    return state
+    return state;
 
   const variable = state.typebotsQueue[0].typebot.variables.find(
     (variable) => variable.id === block.options?.attachments?.saveVariableId
@@ -483,7 +485,8 @@ const saveAnswerInDb =
       answer: {
         blockId: block.id,
         content: reply.text,
-        attachedFileUrls: reply.attachedFileUrls,
+        attachedFileUrls:
+          reply.type === 'text' ? reply.attachedFileUrls : undefined,
       },
       state,
     })
@@ -497,7 +500,8 @@ const saveAnswerInDb =
             answers: (newSessionState.previewMetadata?.answers ?? []).concat({
               blockId: block.id,
               content: reply.text,
-              attachedFileUrls: reply.attachedFileUrls,
+              attachedFileUrls:
+                reply.type === 'text' ? reply.attachedFileUrls : undefined,
             }),
           },
     }
@@ -511,7 +515,7 @@ const saveAnswerInDb =
     return setNewAnswerInState(newSessionState)({
       key: key ?? block.id,
       value:
-        (reply.attachedFileUrls ?? []).length > 0
+        reply.type === 'text' && (reply.attachedFileUrls ?? []).length > 0
           ? `${reply.attachedFileUrls!.join(', ')}\n\n${reply.text}`
           : reply.text,
     })
