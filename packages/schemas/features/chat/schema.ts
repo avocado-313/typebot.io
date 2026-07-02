@@ -42,6 +42,17 @@ export const messageSchema = z.preprocess(
           'Can only be provided if current input block is a text input block that allows attachments'
         ),
     }),
+    z.object({
+      type: z.literal('location'),
+      // Readable address, kept as the textual fallback (used as the saved
+      // answer / displayed value in text-only flows).
+      text: z.string(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+      address: z.string().optional(),
+      name: z.string().optional(),
+      url: z.string().optional(),
+    }),
   ])
 )
 export type Message = z.infer<typeof messageSchema>
