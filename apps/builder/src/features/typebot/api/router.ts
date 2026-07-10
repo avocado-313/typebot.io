@@ -7,7 +7,10 @@ import { getPublishedTypebot } from './getPublishedTypebot'
 import { publishTypebot } from './publishTypebot'
 import { unpublishTypebot } from './unpublishTypebot'
 import { deleteTypebot } from './deleteTypebot'
+import { restoreTypebot } from './restoreTypebot'
 import { importTypebot } from './importTypebot'
+import { linkBotToBusiness } from './linkBotToBusiness'
+import { listArchivedTypebots } from './listArchivedTypebots'
 
 export const typebotRouter = router({
   createTypebot,
@@ -18,5 +21,8 @@ export const typebotRouter = router({
   unpublishTypebot,
   listTypebots,
   deleteTypebot,
+  restoreTypebot,
   importTypebot,
+  linkBotToBusiness,
+  listArchivedTypebots,
 })

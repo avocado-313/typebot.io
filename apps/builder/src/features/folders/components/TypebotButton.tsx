@@ -19,6 +19,8 @@ import { GripIcon } from '@/components/icons'
 import { useDebounce } from 'use-debounce'
 import { useToast } from '@/hooks/useToast'
 import { MoreButton } from './MoreButton'
+import { LinkBotToBusinessModal } from './LinkBotToBusinessModal'
+import { useUser } from '@/features/account/hooks/useUser'
 import { EmojiOrImageIcon } from '@/components/EmojiOrImageIcon'
 import { T, useTranslate } from '@tolgee/react'
 import { TypebotInDashboard } from '@/features/dashboard/types'
@@ -47,11 +49,17 @@ const TypebotButton = ({
 }: Props) => {
   const { t } = useTranslate()
   const router = useRouter()
+  const { user } = useUser()
   const [draggedTypebotDebounced] = useDebounce(draggedTypebot, 200)
   const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
     onClose: onDeleteClose,
+  } = useDisclosure()
+  const {
+    isOpen: isLinkOpen,
+    onOpen: onLinkOpen,
+    onClose: onLinkClose,
   } = useDisclosure()
   const buttonRef = React.useRef<HTMLDivElement>(null)
 
@@ -134,6 +142,11 @@ const TypebotButton = ({
     unpublishTypebot({ typebotId: typebot.id })
   }
 
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onLinkOpen()
+  }
+
   return (
     <Button
       ref={buttonRef}
@@ -188,6 +201,9 @@ const TypebotButton = ({
             <MenuItem onClick={handleDuplicateClick}>
               {t('folders.typebotButton.duplicate')}
             </MenuItem>
+            {user?.isAdmin && (
+              <MenuItem onClick={handleLinkClick}>Link to business</MenuItem>
+            )}
             <MenuItem color="red.400" onClick={handleDeleteClick}>
               {t('folders.typebotButton.delete')}
             </MenuItem>
@@ -229,6 +245,15 @@ const TypebotButton = ({
           onConfirm={handleDeleteTypebotClick}
           isOpen={isDeleteOpen}
           onClose={onDeleteClose}
+        />
+      )}
+      {user?.isAdmin && (
+        <LinkBotToBusinessModal
+          sourceTypebotId={typebot.id}
+          sourceTypebotName={typebot.name}
+          isOpen={isLinkOpen}
+          onClose={onLinkClose}
+          onSuccess={onTypebotUpdated}
         />
       )}
     </Button>

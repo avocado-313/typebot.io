@@ -41,13 +41,14 @@ export const saveStateToDatabase = async ({
       !hasEmbedBubbleWithWaitEvent
   )
 
-  const queries: Prisma.PrismaPromise<any>[] = []
-
   const resultId = state.typebotsQueue[0].resultId
 
-  if (id) {
-    if (isCompleted && resultId) queries.push(deleteSession(id))
-    else queries.push(updateSession({ id, state, isReplying: false }))
+  // Built as a factory so the session writes can be safely re-issued in the FK fallback
+  // below (a PrismaPromise can't be reused after its transaction fails).
+  const buildSessionQueries = (): Prisma.PrismaPromise<any>[] => {
+    if (!id) return []
+    if (isCompleted && resultId) return [deleteSession(id)]
+    return [updateSession({ id, state, isReplying: false })]
   }
 
   const session = id
@@ -55,13 +56,15 @@ export const saveStateToDatabase = async ({
     : await createSession({ id: initialSessionId, state, isReplying: false })
 
   if (!resultId) {
-    if (queries.length > 0) await prisma.$transaction(queries)
+    const sessionQueries = buildSessionQueries()
+    if (sessionQueries.length > 0) await prisma.$transaction(sessionQueries)
     return session
   }
 
   const answers = state.typebotsQueue[0].answers
 
-  queries.push(
+  const queries: Prisma.PrismaPromise<any>[] = [
+    ...buildSessionQueries(),
     upsertResult({
       resultId,
       typebot: state.typebotsQueue[0].typebot,
@@ -73,10 +76,28 @@ export const saveStateToDatabase = async ({
       logs,
       visitedEdges,
       setVariableHistory,
-    })
-  )
+    }),
+  ]
 
-  await prisma.$transaction(queries)
+  try {
+    await prisma.$transaction(queries)
+  } catch (err) {
+    // The typebot this session belongs to no longer exists — e.g. it was deleted after the
+    // chat started (the linked-bot / backup case: a Hub message arrives for a bot whose row
+    // has since been removed). The Result FK then fails. Rather than 500ing, persist just the
+    // session so the in-memory flow keeps responding; the result simply isn't recorded since
+    // there's no typebot to attach it to.
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === 'P2003'
+    ) {
+      console.error(
+        `saveStateToDatabase: typebot ${state.typebotsQueue[0].typebot.id} no longer exists; persisting session without result (${err.message})`
+      )
+      const sessionQueries = buildSessionQueries()
+      if (sessionQueries.length > 0) await prisma.$transaction(sessionQueries)
+    } else throw err
+  }
 
   return session
 }

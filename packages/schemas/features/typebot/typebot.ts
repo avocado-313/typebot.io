@@ -58,7 +58,13 @@ export const typebotV5Schema = z.preprocess(
     isClosed: z.boolean(),
     whatsAppCredentialsId: z.string().nullable(),
     riskLevel: z.number().nullable(),
-  }) satisfies z.ZodType<TypebotPrisma, z.ZodTypeDef, unknown>
+    // backupOfTypebotId is a persistence-only bookkeeping column (backup snapshot pointer),
+    // not part of the logical typebot content, so it is omitted from this schema.
+  }) satisfies z.ZodType<
+    Omit<TypebotPrisma, 'backupOfTypebotId' | 'businessId'>,
+    z.ZodTypeDef,
+    unknown
+  >
 )
 
 export type TypebotV5 = z.infer<typeof typebotV5Schema>

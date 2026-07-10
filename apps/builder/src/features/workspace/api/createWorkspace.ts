@@ -5,6 +5,8 @@ import { Workspace, workspaceSchema } from '@typebot.io/schemas'
 import { z } from 'zod'
 import { parseWorkspaceDefaultPlan } from '../helpers/parseWorkspaceDefaultPlan'
 import { trackEvents } from '@typebot.io/telemetry/trackEvents'
+import { createId } from '@paralleldrive/cuid2'
+import { generateId } from '@typebot.io/lib'
 
 export const createWorkspace = authenticatedProcedure
   .meta({
@@ -16,7 +18,16 @@ export const createWorkspace = authenticatedProcedure
       tags: ['Workspace'],
     },
   })
-  .input(z.object({ icon: z.string().optional(), name: z.string() }))
+  .input(
+    z.object({
+      icon: z.string().optional(),
+      name: z.string(),
+      // Required: the Hub business this workspace belongs to. Bots created in it inherit it.
+      businessId: z.string().min(1),
+      // Optional: email of the user who should be the primary member of this workspace
+      memberEmail: z.string().email().optional(),
+    })
+  )
   .output(
     z.object({
       workspace: workspaceSchema.omit({
@@ -33,7 +44,56 @@ export const createWorkspace = authenticatedProcedure
       }),
     })
   )
-  .mutation(async ({ input: { name, icon }, ctx: { user } }) => {
+  .mutation(async ({ input: { name, icon, businessId, memberEmail }, ctx: { user } }) => {
+    // Check if this businessId is already associated with another workspace
+    const existingWorkspaceWithBusiness = await prisma.workspace.findFirst({
+      where: { businessId },
+      select: { id: true },
+    })
+    
+    if (existingWorkspaceWithBusiness) {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'This business is already associated with another workspace',
+      })
+    }
+
+    // If memberEmail is provided, find or create the user
+    let memberUserId: string | undefined
+    if (memberEmail) {
+      let memberUser = await prisma.user.findUnique({
+        where: { email: memberEmail },
+        select: { id: true },
+      })
+
+      // Create user if they don't exist
+      if (!memberUser) {
+        memberUser = await prisma.user.create({
+          data: {
+            id: createId(),
+            email: memberEmail,
+            apiTokens: {
+              create: { name: 'Default', token: generateId(24) },
+            },
+            onboardingCategories: [],
+          },
+          select: { id: true },
+        })
+
+        await trackEvents([
+          {
+            name: 'User created',
+            userId: memberUser.id,
+            data: {
+              email: memberEmail,
+            },
+          },
+        ])
+      }
+
+      memberUserId = memberUser.id
+    }
+
     const existingWorkspaceNames = (await prisma.workspace.findMany({
       where: {
         members: {
@@ -51,14 +111,25 @@ export const createWorkspace = authenticatedProcedure
         message: 'Workspace with same name already exists',
       })
 
-    const plan = parseWorkspaceDefaultPlan(user.email ?? '')
+    const plan = parseWorkspaceDefaultPlan(memberEmail || user.email || '')
+
+    // Build members array: authenticated user + optional member
+    const members: { role: 'ADMIN'; userId: string }[] = [
+      { role: 'ADMIN', userId: user.id },
+    ]
+
+    // Add memberEmail user if provided and different from authenticated user
+    if (memberUserId && memberUserId !== user.id) {
+      members.push({ role: 'ADMIN', userId: memberUserId })
+    }
 
     const newWorkspace = (await prisma.workspace.create({
       data: {
         name,
         icon,
-        members: { create: [{ role: 'ADMIN', userId: user.id }] },
+        members: { create: members },
         plan,
+        businessId,
       },
     })) as Workspace
 

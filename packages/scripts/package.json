@@ -7,6 +7,9 @@
   "scripts": {
     "playground": "SKIP_ENV_CHECK=true dotenv -e ./.env.local -- tsx playground.ts",
     "db:cleanDatabase": "tsx cleanDatabase.ts",
+    "db:seedBackupWorkspace": "SKIP_ENV_CHECK=true tsx seedBackupWorkspace.ts",
+    "db:backfillBackupWorkspace": "SKIP_ENV_CHECK=true tsx backfillBackupWorkspace.ts",
+    "db:reportArchiveActivity": "SKIP_ENV_CHECK=true tsx reportArchiveActivity.ts",
     "db:backup": "tsx backupDatabase.ts",
     "db:restore": "tsx restoreDatabase.ts",
     "db:setCustomPlan": "tsx setCustomPlan.ts",

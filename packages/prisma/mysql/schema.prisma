@@ -104,6 +104,11 @@ model Workspace {
   isPastDue                     Boolean               @default(false)
   isVerified                    Boolean?
   themeTemplates                ThemeTemplate[]
+  // The Hub business this workspace was created for / linked to. Bots created in this
+  // workspace inherit it when no explicit businessId is provided.
+  businessId                    String?
+
+  @@index([businessId])
 }
 
 model MemberInWorkspace {
@@ -208,10 +213,15 @@ model Typebot {
   whatsAppCredentialsId   String?
   riskLevel               Int?
   bannedIps               BannedIp[]
+  // Snapshot copy pointer — see postgresql/schema.prisma.
+  backupOfTypebotId       String?
+  // Hub business this bot belongs to — see postgresql/schema.prisma.
+  businessId              String?
 
   @@index([workspaceId])
   @@index([folderId])
   @@index([isArchived, createdAt(sort: Desc)])
+  @@index([backupOfTypebotId])
 }
 
 model Invitation {
@@ -405,6 +415,24 @@ model BannedIp {
   @@index([userId])
 }
 
+// See postgresql/schema.prisma for the canonical definition. The isArchived audit
+// trigger is Postgres-only; on MySQL only app-level inserts populate this table.
+model BotAuditLog {
+  id          String         @id @default(cuid())
+  createdAt   DateTime       @default(now())
+  botId       String
+  workspaceId String
+  action      BotAuditAction
+  actorType   BotAuditActor
+  actorId     String?
+  source      String?
+  metadata    Json?
+
+  @@index([botId, createdAt(sort: Desc)])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([action])
+}
+
 enum WorkspaceRole {
   ADMIN
   MEMBER
@@ -430,4 +458,20 @@ enum CollaborationType {
   READ
   WRITE
   FULL_ACCESS
+}
+
+enum BotAuditAction {
+  ARCHIVE
+  UNARCHIVE
+  DUPLICATE
+  PROMOTE
+  FALLBACK_HIT
+  LINK
+}
+
+enum BotAuditActor {
+  USER
+  API_TOKEN
+  SQL
+  SYSTEM
 }

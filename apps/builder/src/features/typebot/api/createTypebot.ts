@@ -15,6 +15,8 @@ import {
 import { createId } from '@paralleldrive/cuid2'
 import { EventType } from '@typebot.io/schemas/features/events/constants'
 import { trackEvents } from '@typebot.io/telemetry/trackEvents'
+import { snapshotTypebotToBackup } from './helpers/snapshotTypebotToBackup'
+import { getBackupWorkspaceId } from './helpers/getBackupWorkspaceId'
 
 const typebotCreateSchemaPick = {
   name: true,
@@ -45,6 +47,7 @@ export const createTypebot = authenticatedProcedure
   .input(
     z.object({
       workspaceId: z.string(),
+      businessId: z.string().optional(),
       typebot: typebotV6Schema.pick(typebotCreateSchemaPick).partial(),
     })
   )
@@ -53,10 +56,11 @@ export const createTypebot = authenticatedProcedure
       typebot: typebotV6Schema,
     })
   )
-  .mutation(async ({ input: { typebot, workspaceId }, ctx: { user } }) => {
+  .mutation(
+    async ({ input: { typebot, workspaceId, businessId }, ctx: { user } }) => {
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
-      select: { id: true, members: true, plan: true },
+      select: { id: true, members: true, plan: true, businessId: true },
     })
     const userRole = getUserRoleInWorkspace(
       user.id,
@@ -70,19 +74,46 @@ export const createTypebot = authenticatedProcedure
     )
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Workspace not found' })
 
-    // Check if workspace already has 5 typebots
-    const existingTypebotCount = await prisma.typebot.count({
-      where: {
-        workspaceId,
-        isArchived: { not: true },
-      },
-    })
-
-    if (existingTypebotCount >= 5) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Maximum limit of 5 typebots reached for this workspace',
+    // Adopt the businessId onto the workspace when the caller (e.g. the Hub chatbot/setup
+    // flow) provides one and the workspace isn't yet associated with a business. This
+    // backfills legacy workspaces created before businessId existed, so future bots inherit it.
+    if (businessId && !workspace.businessId) {
+      // Check if another workspace already has this businessId
+      const existingWorkspaceWithBusiness = await prisma.workspace.findFirst({
+        where: { businessId, id: { not: workspace.id } },
+        select: { id: true },
       })
+      
+      if (existingWorkspaceWithBusiness) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'This business is already associated with another workspace',
+        })
+      }
+
+      await prisma.workspace.update({
+        where: { id: workspace.id },
+        data: { businessId },
+      })
+    }
+
+    // Enforce the 5-bot limit for every real workspace. The system backup ("azeer admin")
+    // workspace is exempt so it can hold unlimited copies.
+    const backupWorkspaceId = await getBackupWorkspaceId()
+    if (workspaceId !== backupWorkspaceId) {
+      const existingTypebotCount = await prisma.typebot.count({
+        where: {
+          workspaceId,
+          isArchived: { not: true },
+        },
+      })
+
+      if (existingTypebotCount >= 5) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Maximum limit of 5 typebots reached for this workspace',
+        })
+      }
     }
 
     if (
@@ -146,7 +177,9 @@ export const createTypebot = authenticatedProcedure
         resultsTablePreferences: typebot.resultsTablePreferences ?? undefined,
         publicId: typebot.publicId ?? undefined,
         customDomain: typebot.customDomain ?? undefined,
-      } satisfies Partial<TypebotV6>,
+        // Inherit the workspace's business when the caller doesn't specify one.
+        businessId: businessId ?? workspace.businessId ?? undefined,
+      } satisfies Partial<TypebotV6> & { businessId?: string },
     })
 
     const parsedNewTypebot = typebotV6Schema.parse(newTypebot)
@@ -162,6 +195,9 @@ export const createTypebot = authenticatedProcedure
         },
       },
     ])
+
+    // Mirror the new bot into the backup workspace. Best-effort.
+    await snapshotTypebotToBackup(parsedNewTypebot.id)
 
     return { typebot: parsedNewTypebot }
   })

@@ -176,6 +176,21 @@
                             "properties": {
                               "id": {
                                 "type": "string"
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "groupId": {
+                                    "type": "string"
+                                  },
+                                  "groupTitle": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "groupId",
+                                  "groupTitle"
+                                ]
                               }
                             },
                             "required": [
@@ -379,6 +394,12 @@
                             "$ref": "#/components/schemas/csaWait"
                           },
                           {
+                            "$ref": "#/components/schemas/csaAssign"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaClose"
+                          },
+                          {
                             "$ref": "#/components/schemas/csaSetVariable"
                           },
                           {
@@ -408,6 +429,8 @@
                             "chatwoot": "#/components/schemas/csaChatwoot",
                             "googleAnalytics": "#/components/schemas/csaGa",
                             "wait": "#/components/schemas/csaWait",
+                            "assign": "#/components/schemas/csaAssign",
+                            "close": "#/components/schemas/csaClose",
                             "setVariable": "#/components/schemas/csaSetVariable",
                             "streamOpenAiChatCompletion": "#/components/schemas/csaStreamOpenAiChatCompletion",
                             "webhookToExecute": "#/components/schemas/csaExecWebhook",
@@ -686,6 +709,21 @@
                             "properties": {
                               "id": {
                                 "type": "string"
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "groupId": {
+                                    "type": "string"
+                                  },
+                                  "groupTitle": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "groupId",
+                                  "groupTitle"
+                                ]
                               }
                             },
                             "required": [
@@ -889,6 +927,12 @@
                             "$ref": "#/components/schemas/csaWait"
                           },
                           {
+                            "$ref": "#/components/schemas/csaAssign"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaClose"
+                          },
+                          {
                             "$ref": "#/components/schemas/csaSetVariable"
                           },
                           {
@@ -918,6 +962,8 @@
                             "chatwoot": "#/components/schemas/csaChatwoot",
                             "googleAnalytics": "#/components/schemas/csaGa",
                             "wait": "#/components/schemas/csaWait",
+                            "assign": "#/components/schemas/csaAssign",
+                            "close": "#/components/schemas/csaClose",
                             "setVariable": "#/components/schemas/csaSetVariable",
                             "streamOpenAiChatCompletion": "#/components/schemas/csaStreamOpenAiChatCompletion",
                             "webhookToExecute": "#/components/schemas/csaExecWebhook",
@@ -1082,6 +1128,39 @@
                           "type",
                           "text"
                         ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "location"
+                            ]
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "latitude": {
+                            "type": "number"
+                          },
+                          "longitude": {
+                            "type": "number"
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "text"
+                        ]
                       }
                     ],
                     "description": "Only provide it if your flow starts with an input block and you'd like to directly provide an answer to it."
@@ -1169,6 +1248,21 @@
                             "properties": {
                               "id": {
                                 "type": "string"
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "groupId": {
+                                    "type": "string"
+                                  },
+                                  "groupTitle": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "groupId",
+                                  "groupTitle"
+                                ]
                               }
                             },
                             "required": [
@@ -1315,6 +1409,21 @@
                                 "amountLabel",
                                 "publicKey"
                               ]
+                            },
+                            "group": {
+                              "type": "object",
+                              "properties": {
+                                "groupId": {
+                                  "type": "string"
+                                },
+                                "groupTitle": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "groupId",
+                                "groupTitle"
+                              ]
                             }
                           }
                         }
@@ -1338,6 +1447,12 @@
                           },
                           {
                             "$ref": "#/components/schemas/csaWait"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaAssign"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaClose"
                           },
                           {
                             "$ref": "#/components/schemas/csaSetVariable"
@@ -1369,6 +1484,8 @@
                             "chatwoot": "#/components/schemas/csaChatwoot",
                             "googleAnalytics": "#/components/schemas/csaGa",
                             "wait": "#/components/schemas/csaWait",
+                            "assign": "#/components/schemas/csaAssign",
+                            "close": "#/components/schemas/csaClose",
                             "setVariable": "#/components/schemas/csaSetVariable",
                             "streamOpenAiChatCompletion": "#/components/schemas/csaStreamOpenAiChatCompletion",
                             "webhookToExecute": "#/components/schemas/csaExecWebhook",
@@ -1499,6 +1616,39 @@
                           "type",
                           "text"
                         ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "location"
+                            ]
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "latitude": {
+                            "type": "number"
+                          },
+                          "longitude": {
+                            "type": "number"
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "text"
+                        ]
                       }
                     ]
                   },
@@ -1536,6 +1686,21 @@
                             "properties": {
                               "id": {
                                 "type": "string"
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "groupId": {
+                                    "type": "string"
+                                  },
+                                  "groupTitle": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "groupId",
+                                  "groupTitle"
+                                ]
                               }
                             },
                             "required": [
@@ -1682,6 +1847,21 @@
                                 "amountLabel",
                                 "publicKey"
                               ]
+                            },
+                            "group": {
+                              "type": "object",
+                              "properties": {
+                                "groupId": {
+                                  "type": "string"
+                                },
+                                "groupTitle": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "groupId",
+                                "groupTitle"
+                              ]
                             }
                           }
                         }
@@ -1705,6 +1885,12 @@
                           },
                           {
                             "$ref": "#/components/schemas/csaWait"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaAssign"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaClose"
                           },
                           {
                             "$ref": "#/components/schemas/csaSetVariable"
@@ -1736,6 +1922,8 @@
                             "chatwoot": "#/components/schemas/csaChatwoot",
                             "googleAnalytics": "#/components/schemas/csaGa",
                             "wait": "#/components/schemas/csaWait",
+                            "assign": "#/components/schemas/csaAssign",
+                            "close": "#/components/schemas/csaClose",
                             "setVariable": "#/components/schemas/csaSetVariable",
                             "streamOpenAiChatCompletion": "#/components/schemas/csaStreamOpenAiChatCompletion",
                             "webhookToExecute": "#/components/schemas/csaExecWebhook",
@@ -1863,6 +2051,39 @@
                               "type": "string"
                             },
                             "description": "Can only be provided if current input block is a text input block that allows attachments"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "text"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "location"
+                            ]
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "latitude": {
+                            "type": "number"
+                          },
+                          "longitude": {
+                            "type": "number"
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -2007,6 +2228,21 @@
                             "properties": {
                               "id": {
                                 "type": "string"
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "groupId": {
+                                    "type": "string"
+                                  },
+                                  "groupTitle": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "groupId",
+                                  "groupTitle"
+                                ]
                               }
                             },
                             "required": [
@@ -2153,6 +2389,21 @@
                                 "amountLabel",
                                 "publicKey"
                               ]
+                            },
+                            "group": {
+                              "type": "object",
+                              "properties": {
+                                "groupId": {
+                                  "type": "string"
+                                },
+                                "groupTitle": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "groupId",
+                                "groupTitle"
+                              ]
                             }
                           }
                         }
@@ -2176,6 +2427,12 @@
                           },
                           {
                             "$ref": "#/components/schemas/csaWait"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaAssign"
+                          },
+                          {
+                            "$ref": "#/components/schemas/csaClose"
                           },
                           {
                             "$ref": "#/components/schemas/csaSetVariable"
@@ -2207,6 +2464,8 @@
                             "chatwoot": "#/components/schemas/csaChatwoot",
                             "googleAnalytics": "#/components/schemas/csaGa",
                             "wait": "#/components/schemas/csaWait",
+                            "assign": "#/components/schemas/csaAssign",
+                            "close": "#/components/schemas/csaClose",
                             "setVariable": "#/components/schemas/csaSetVariable",
                             "streamOpenAiChatCompletion": "#/components/schemas/csaStreamOpenAiChatCompletion",
                             "webhookToExecute": "#/components/schemas/csaExecWebhook",
@@ -3827,6 +4086,43 @@
                           "type": {
                             "type": "string",
                             "enum": [
+                              "Assign Chat"
+                            ]
+                          },
+                          "options": {
+                            "type": "object",
+                            "properties": {
+                              "assignType": {
+                                "type": "string",
+                                "enum": [
+                                  "agent",
+                                  "team",
+                                  "handover"
+                                ]
+                              },
+                              "email": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "outgoingEdgeId": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
                               "Set variable"
                             ]
                           },
@@ -4129,6 +4425,30 @@
                           "type": {
                             "type": "string",
                             "enum": [
+                              "Close Chat"
+                            ]
+                          },
+                          "options": {
+                            "type": "object"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "outgoingEdgeId": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
                               "AB test"
                             ]
                           },
@@ -4204,6 +4524,41 @@
                           "id",
                           "type",
                           "items"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "outgoingEdgeId": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "Global Jump"
+                            ]
+                          },
+                          "options": {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string"
+                              },
+                              "groupId": {
+                                "type": "string"
+                              },
+                              "blockId": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type"
                         ]
                       },
                       {
@@ -6034,6 +6389,23 @@
                       }
                     }
                   }
+                },
+                "interactiveData": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "maxLength": 72
+                    },
+                    "payload": {
+                      "type": "string",
+                      "maxLength": 256
+                    },
+                    "section": {
+                      "type": "string",
+                      "maxLength": 24
+                    }
+                  }
                 }
               },
               "required": [
@@ -6061,6 +6433,47 @@
               },
               "searchInputPlaceholder": {
                 "type": "string"
+              },
+              "isInteractive": {
+                "type": "boolean"
+              },
+              "interactiveButtonType": {
+                "type": "string",
+                "enum": [
+                  "reply",
+                  "list"
+                ]
+              },
+              "interactiveData": {
+                "type": "object",
+                "properties": {
+                  "menuTitle": {
+                    "type": "string",
+                    "maxLength": 24
+                  },
+                  "headerType": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "text",
+                      "image",
+                      "video",
+                      "document"
+                    ]
+                  },
+                  "header": {
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  "footer": {
+                    "type": "string",
+                    "maxLength": 60
+                  }
+                }
               }
             }
           }
@@ -7965,6 +8378,43 @@
               "type": {
                 "type": "string",
                 "enum": [
+                  "Assign Chat"
+                ]
+              },
+              "options": {
+                "type": "object",
+                "properties": {
+                  "assignType": {
+                    "type": "string",
+                    "enum": [
+                      "agent",
+                      "team",
+                      "handover"
+                    ]
+                  },
+                  "email": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "id",
+              "type"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "outgoingEdgeId": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
                   "Set variable"
                 ]
               },
@@ -8267,6 +8717,30 @@
               "type": {
                 "type": "string",
                 "enum": [
+                  "Close Chat"
+                ]
+              },
+              "options": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "id",
+              "type"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "outgoingEdgeId": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
                   "AB test"
                 ]
               },
@@ -8336,6 +8810,41 @@
               "id",
               "type",
               "items"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "outgoingEdgeId": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "Global Jump"
+                ]
+              },
+              "options": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "groupId": {
+                    "type": "string"
+                  },
+                  "blockId": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "id",
+              "type"
             ]
           },
           {
@@ -12580,6 +13089,23 @@
                       }
                     }
                   }
+                },
+                "interactiveData": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "maxLength": 72
+                    },
+                    "payload": {
+                      "type": "string",
+                      "maxLength": 256
+                    },
+                    "section": {
+                      "type": "string",
+                      "maxLength": 24
+                    }
+                  }
                 }
               },
               "required": [
@@ -12607,6 +13133,47 @@
               },
               "searchInputPlaceholder": {
                 "type": "string"
+              },
+              "isInteractive": {
+                "type": "boolean"
+              },
+              "interactiveButtonType": {
+                "type": "string",
+                "enum": [
+                  "reply",
+                  "list"
+                ]
+              },
+              "interactiveData": {
+                "type": "object",
+                "properties": {
+                  "menuTitle": {
+                    "type": "string",
+                    "maxLength": 24
+                  },
+                  "headerType": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "text",
+                      "image",
+                      "video",
+                      "document"
+                    ]
+                  },
+                  "header": {
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  "footer": {
+                    "type": "string",
+                    "maxLength": 60
+                  }
+                }
               }
             }
           }
@@ -13218,6 +13785,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13251,6 +13833,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13339,6 +13936,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13389,6 +14001,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13422,6 +14049,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13429,6 +14071,95 @@
           "wait"
         ],
         "title": "Wait"
+      },
+      "csaAssign": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "assign"
+            ]
+          },
+          "assign": {
+            "type": "object",
+            "properties": {
+              "assignType": {
+                "type": "string",
+                "enum": [
+                  "agent",
+                  "team",
+                  "handover"
+                ]
+              },
+              "email": {
+                "type": "string"
+              }
+            }
+          },
+          "lastBubbleBlockId": {
+            "type": "string"
+          },
+          "expectsDedicatedReply": {
+            "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "assign"
+        ],
+        "title": "Assign"
+      },
+      "csaClose": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "close"
+            ]
+          },
+          "lastBubbleBlockId": {
+            "type": "string"
+          },
+          "expectsDedicatedReply": {
+            "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "Close Chat"
       },
       "csaSetVariable": {
         "type": "object",
@@ -13510,6 +14241,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13559,6 +14305,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13613,6 +14374,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13655,6 +14431,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13805,6 +14596,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13833,6 +14639,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [
@@ -13871,6 +14692,21 @@
           },
           "expectsDedicatedReply": {
             "type": "boolean"
+          },
+          "group": {
+            "type": "object",
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "groupTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "groupId",
+              "groupTitle"
+            ]
           }
         },
         "required": [

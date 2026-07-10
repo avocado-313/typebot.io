@@ -18,6 +18,7 @@ import { useTranslate } from '@tolgee/react'
 import { Typebot } from '@typebot.io/schemas'
 import { TemplatesModal } from './TemplatesModal'
 import { Alert, AlertIcon, AlertDescription } from '@chakra-ui/react'
+import { env } from '@typebot.io/env'
 
 export const CreateNewTypebotButtons = () => {
   const { t } = useTranslate()
@@ -101,8 +102,10 @@ export const CreateNewTypebotButtons = () => {
     <VStack maxW="600px" w="full" flex="1" pt="20" spacing={10}>
       <Heading>{t('templates.buttons.heading')}</Heading>
 
-      {/* Show warning when approaching typebot limit */}
-      {typebotCount && typebotCount.typebots.length >= 4 && (
+      {/* Show warning when approaching typebot limit — the backup workspace is unlimited */}
+      {workspace?.id !== env.NEXT_PUBLIC_BACKUP_WORKSPACE_ID &&
+        typebotCount &&
+        typebotCount.typebots.length >= 4 && (
         <Alert status="warning" borderRadius="md">
           <AlertIcon />
           <AlertDescription>

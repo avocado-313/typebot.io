@@ -1,13 +1,13 @@
 import prisma from '@typebot.io/lib/prisma'
-import { authenticatedProcedure } from '@/helpers/server/trpc'
+import { adminProcedure } from '@/helpers/server/trpc'
 import { z } from 'zod'
-import { isAdminWriteWorkspaceForbidden } from '../helpers/isAdminWriteWorkspaceForbidden'
 import { TRPCError } from '@trpc/server'
 import { isNotEmpty } from '@typebot.io/lib/utils'
 import Stripe from 'stripe'
 import { env } from '@typebot.io/env'
+import { hubUnlinkChannel } from '@/features/typebot/api/helpers/hubUnlinkChannel'
 
-export const deleteWorkspace = authenticatedProcedure
+export const deleteWorkspace = adminProcedure
   .meta({
     openapi: {
       method: 'DELETE',
@@ -31,18 +31,30 @@ export const deleteWorkspace = authenticatedProcedure
       message: z.string(),
     })
   )
-  .mutation(async ({ input: { workspaceId }, ctx: { user } }) => {
+  .mutation(async ({ input: { workspaceId } }) => {
     const workspace = await prisma.workspace.findFirst({
       where: { id: workspaceId },
-      include: { members: true },
+      select: {
+        id: true,
+        stripeId: true,
+      },
     })
 
-    if (!workspace || isAdminWriteWorkspaceForbidden(workspace, user))
+    if (!workspace)
       throw new TRPCError({ code: 'NOT_FOUND', message: 'No workspaces found' })
 
     await prisma.workspace.deleteMany({
       where: { id: workspaceId },
     })
+
+    // Keep the Hub in sync: the cascade above hard-deleted the workspace and every bot in
+    // it, so clear the workspace link (and bot pointers) from any channel referencing it.
+    // Best-effort — never fails the delete (same contract as deleteTypebot).
+    const unlink = await hubUnlinkChannel({ workspaceId })
+    if (!unlink.ok)
+      console.error(
+        `deleteWorkspace: Hub unlink failed for workspace ${workspaceId}: ${unlink.error}`
+      )
 
     if (isNotEmpty(workspace.stripeId) && env.STRIPE_SECRET_KEY) {
       const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
