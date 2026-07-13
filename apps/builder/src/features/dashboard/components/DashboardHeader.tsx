@@ -12,6 +12,7 @@ import { isNotDefined } from '@typebot.io/lib'
 import { useTranslate } from '@tolgee/react'
 import { useWorkspace } from '@/features/workspace/WorkspaceProvider'
 import { WorkspaceSettingsModal } from '@/features/workspace/components/WorkspaceSettingsModal'
+import { CreateWorkspaceModal } from '@/features/workspace/components/CreateWorkspaceModal'
 import { ParentModalProvider } from '@/features/graph/providers/ParentModalProvider'
 import { useRouter } from 'next/router'
 import { ChevronLeftIcon } from './../../../components/icons'
@@ -20,16 +21,27 @@ import { WorkspaceDropdown } from '@/features/workspace/components/WorkspaceDrop
 export const DashboardHeader = () => {
   const { t } = useTranslate()
   const { asPath, back, push } = useRouter()
-  const { workspace, switchWorkspace, createWorkspace } = useWorkspace()
+  const { workspace, workspaces, switchWorkspace, createWorkspace } = useWorkspace()
   const { user, logOut } = useUser()
 
   const isRedirectFromCredentialsCreation = asPath.includes('preferences')
+  const hasMultipleWorkspaces = workspaces && workspaces.length > 1
 
   const { isOpen, onOpen, onClose } = useDisclosure({
     defaultIsOpen: isRedirectFromCredentialsCreation,
   })
-  const handleCreateNewWorkspace = () =>
-    createWorkspace(user?.name ?? undefined)
+  const {
+    isOpen: isCreateWorkspaceOpen,
+    onOpen: onCreateWorkspaceOpen,
+    onClose: onCreateWorkspaceClose,
+  } = useDisclosure()
+
+  const handleCreateNewWorkspace = (businessId: string, memberEmail?: string) =>
+    createWorkspace({ 
+      businessId, 
+      memberEmail,
+      userFullName: user?.name ?? undefined 
+    })
 
   const handleBackNavigation = () => {
     // Check if we can go back in browser history
@@ -80,13 +92,23 @@ export const DashboardHeader = () => {
             </Button>
           )}
           {user?.isAdmin && (
+            <Button variant="ghost" onClick={() => push('/typebots/archived')}>
+              Archived
+            </Button>
+          )}
+          {(hasMultipleWorkspaces || user?.isAdmin) && (
             <WorkspaceDropdown
               currentWorkspace={workspace}
               onLogoutClick={logOut}
-              onCreateNewWorkspaceClick={handleCreateNewWorkspace}
+              onCreateNewWorkspaceClick={onCreateWorkspaceOpen}
               onWorkspaceSelected={switchWorkspace}
             />
           )}
+          <CreateWorkspaceModal
+            isOpen={isCreateWorkspaceOpen}
+            onClose={onCreateWorkspaceClose}
+            onSubmit={handleCreateNewWorkspace}
+          />
         </HStack>
       </Flex>
     </Flex>

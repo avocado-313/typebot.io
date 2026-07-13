@@ -137,8 +137,18 @@ export function customAdapter(p: PrismaClient): Adapter {
     createSession: (data) => p.session.create({ data }),
     updateSession: (data) =>
       p.session.update({ data, where: { sessionToken: data.sessionToken } }),
-    deleteSession: (sessionToken) =>
-      p.session.delete({ where: { sessionToken } }),
+    async deleteSession(sessionToken) {
+      try {
+        return await p.session.delete({ where: { sessionToken } })
+      } catch (error) {
+        // A session cookie can outlive its DB row (e.g. after a DB reset or
+        // manual cleanup). Deleting a missing session should be a no-op, not a
+        // hard error that breaks sign-in — same handling as useVerificationToken.
+        if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2025')
+          return null
+        throw error
+      }
+    },
     createVerificationToken: (data) => p.verificationToken.create({ data }),
     async useVerificationToken(identifier_token) {
       try {

@@ -140,6 +140,14 @@ export const TypebotPageV2 = ({
     if (error) setError(error)
   }
 
+  const handleNewLog = () => {
+    // Log handling not implemented for this view
+  }
+
+  const handleNewGroupVisible = () => {
+    // Group visibility tracking not implemented for this view
+  }
+
   if (error) {
     return <ErrorPage error={error} />
   }
@@ -154,8 +162,11 @@ export const TypebotPageV2 = ({
         <TypebotViewer
           typebot={publishedTypebot}
           resultId={resultId}
+          startGroupId={undefined}
           predefinedVariables={predefinedVariables}
           onNewAnswer={handleNewAnswer}
+          onNewLog={handleNewLog}
+          onNewGroupVisible={handleNewGroupVisible}
           onCompleted={handleCompleted}
           onVariablesUpdated={handleNewVariables}
           isLoading={isNotDefined(resultId)}

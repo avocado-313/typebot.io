@@ -18,8 +18,10 @@ import {
 import { isWriteTypebotForbidden } from '../helpers/isWriteTypebotForbidden'
 import { isCloudProdInstance } from '@/helpers/isCloudProdInstance'
 import { Prisma } from '@typebot.io/prisma'
+import { snapshotTypebotToBackup } from './helpers/snapshotTypebotToBackup'
 import { migrateTypebot } from '@typebot.io/migrations/migrateTypebot'
 import { checkGroupLimits, shouldUnpublishTypebot } from '@typebot.io/lib'
+import { getBackupWorkspaceId } from './helpers/getBackupWorkspaceId'
 
 const typebotUpdateSchemaPick = {
   version: true,
@@ -162,8 +164,13 @@ export const updateTypebot = authenticatedProcedure
       ? await sanitizeGroups(existingTypebot.workspace.id)(typebot.groups)
       : undefined
 
+    // The system backup ("azeer admin") workspace has unlimited groups — skip the API-driven
+    // group-limit check (and the unpublish-on-overflow below) for it entirely.
+    const backupWorkspaceId = await getBackupWorkspaceId()
+    const isBackupWorkspace = existingTypebot.workspace.id === backupWorkspaceId
+
     // Check group limits if groups are being updated
-    if (groups) {
+    if (groups && !isBackupWorkspace) {
       const limits = await checkGroupLimits(existingTypebot.workspace.id)
       if (groups.length > limits.maxGroups) {
         throw new TRPCError({
@@ -225,7 +232,7 @@ export const updateTypebot = authenticatedProcedure
     )
 
     // Check if we need to unpublish due to group limits after update
-    if (migratedTypebot.publicId && groups) {
+    if (migratedTypebot.publicId && groups && !isBackupWorkspace) {
       const shouldUnpublish = await shouldUnpublishTypebot(
         typebotId,
         groups.length
@@ -241,6 +248,9 @@ export const updateTypebot = authenticatedProcedure
         migratedTypebot.publicId = null
       }
     }
+
+    // Keep the backup workspace in sync with edits. Best-effort — never blocks the save.
+    await snapshotTypebotToBackup(typebotId)
 
     return { typebot: migratedTypebot }
   })

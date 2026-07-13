@@ -6,4 +6,6 @@ export {
   WorkspaceRole,
   GraphNavigation,
   CollaborationType,
+  BotAuditAction,
+  BotAuditActor,
 } from '@prisma/client'

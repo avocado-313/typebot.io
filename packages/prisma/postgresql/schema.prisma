@@ -98,6 +98,11 @@ model Workspace {
   isPastDue                     Boolean               @default(false)
   isVerified                    Boolean?
   themeTemplates                ThemeTemplate[]
+  // The Hub business this workspace was created for / linked to. Bots created in this
+  // workspace inherit it when no explicit businessId is provided.
+  businessId                    String?
+
+  @@index([businessId])
 }
 
 model MemberInWorkspace {
@@ -192,9 +197,16 @@ model Typebot {
   whatsAppCredentialsId   String?
   riskLevel               Int?
   bannedIps               BannedIp[]
+  // When set, this bot is a snapshot copy (in the backup workspace) of the source bot with
+  // this id. Not a foreign key so the backup survives the source's deletion.
+  backupOfTypebotId       String?
+  // The Hub business this bot was created for / linked to. Persisted so it survives an
+  // unlink, and used to name backup copies (<name>-<businessId>).
+  businessId              String?
 
   @@index([workspaceId])
   @@index([isArchived, createdAt(sort: Desc)])
+  @@index([backupOfTypebotId])
 }
 
 model Invitation {
@@ -377,6 +389,27 @@ model BannedIp {
   userId               String
 }
 
+// Immutable audit trail for bot lifecycle events (archive/unarchive/duplicate/promote/
+// fallback/link). `botId` is intentionally NOT a foreign key so history survives the
+// monthly hard-delete of archived bots in packages/scripts/cleanDatabase.ts. ARCHIVE and
+// UNARCHIVE rows are written by a Postgres trigger (see the migration) so even raw-SQL
+// changes are captured; app code attributes the actor via transaction-local GUCs.
+model BotAuditLog {
+  id          String         @id @default(cuid())
+  createdAt   DateTime       @default(now())
+  botId       String
+  workspaceId String
+  action      BotAuditAction
+  actorType   BotAuditActor
+  actorId     String?
+  source      String?
+  metadata    Json?
+
+  @@index([botId, createdAt(sort: Desc)])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([action])
+}
+
 enum WorkspaceRole {
   ADMIN
   MEMBER
@@ -402,4 +435,20 @@ enum CollaborationType {
   READ
   WRITE
   FULL_ACCESS
+}
+
+enum BotAuditAction {
+  ARCHIVE
+  UNARCHIVE
+  DUPLICATE
+  PROMOTE
+  FALLBACK_HIT
+  LINK
+}
+
+enum BotAuditActor {
+  USER
+  API_TOKEN
+  SQL
+  SYSTEM
 }

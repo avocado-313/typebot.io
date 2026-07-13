@@ -74,6 +74,10 @@ const baseEnv = {
       .min(1)
       .optional()
       .transform((val) => val?.split(',')),
+    // System "azeer admin" backup workspace that holds duplicates of Hub-linked bots.
+    // Seeded via packages/scripts/seedBackupWorkspace.ts. This workspace is exempt from the
+    // 5-bot limit so it can hold many backups.
+    BACKUP_WORKSPACE_ID: z.string().min(1).optional(),
     DEFAULT_WORKSPACE_PLAN: z
       .enum(['FREE', 'STARTER', 'PRO', 'LIFETIME', 'UNLIMITED'])
       .refine((str) =>
@@ -428,6 +432,10 @@ const hubEnv = {
     NEXT_PUBLIC_HUB_URL: z.string().optional(),
     NEXT_PUBLIC_HUB_API_SIGNATURE: z.string().optional(),
     NEXT_PUBLIC_HUB_MAX_GROUPS: z.string().optional(),
+    // Client-visible mirror of BACKUP_WORKSPACE_ID so browser-side limit checks (group/bot)
+    // can treat the system "azeer admin" backup workspace as unlimited. Keep this in sync
+    // with the server-only BACKUP_WORKSPACE_ID.
+    NEXT_PUBLIC_BACKUP_WORKSPACE_ID: z.string().min(1).optional(),
   },
   runtimeEnv: {
     NEXT_PUBLIC_HUB_URL: getRuntimeVariable('NEXT_PUBLIC_HUB_URL'),
@@ -436,6 +444,9 @@ const hubEnv = {
     ),
     NEXT_PUBLIC_HUB_MAX_GROUPS: getRuntimeVariable(
       'NEXT_PUBLIC_HUB_MAX_GROUPS'
+    ),
+    NEXT_PUBLIC_BACKUP_WORKSPACE_ID: getRuntimeVariable(
+      'NEXT_PUBLIC_BACKUP_WORKSPACE_ID'
     ),
   },
 }

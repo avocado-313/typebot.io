@@ -34,7 +34,11 @@ const workspaceContext = createContext<{
   workspace?: WorkspaceInApp
   currentRole?: WorkspaceRole
   switchWorkspace: (workspaceId: string) => void
-  createWorkspace: (name?: string) => Promise<void>
+  createWorkspace: (params: {
+    businessId: string
+    memberEmail?: string
+    userFullName?: string
+  }) => Promise<void>
   updateWorkspace: (updates: { icon?: string; name?: string }) => void
   deleteCurrentWorkspace: () => Promise<void>
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -166,10 +170,22 @@ export const WorkspaceProvider = ({
     replace('/typebots')
   }
 
-  const createWorkspace = async (userFullName?: string) => {
+  const createWorkspace = async ({
+    businessId,
+    memberEmail,
+    userFullName,
+  }: {
+    businessId: string
+    memberEmail?: string
+    userFullName?: string
+  }) => {
     if (!workspaces) return
     const name = parseNewName(userFullName, workspaces)
-    const { workspace } = await createWorkspaceMutation.mutateAsync({ name })
+    const { workspace } = await createWorkspaceMutation.mutateAsync({
+      name,
+      businessId,
+      memberEmail,
+    })
     setWorkspaceId(workspace.id)
   }
 
@@ -182,7 +198,10 @@ export const WorkspaceProvider = ({
   }
 
   const deleteCurrentWorkspace = async () => {
-    if (!workspaceId || !workspaces || workspaces.length < 2) return
+    if (!workspaceId || !workspaces) return
+    // Deletion is an admin-only action; admins can delete a workspace even if
+    // it's the last one they can see.
+    if (!user?.isAdmin) return
     await deleteWorkspaceMutation.mutateAsync({ workspaceId })
   }
 

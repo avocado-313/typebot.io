@@ -7,11 +7,14 @@ import {
   Button,
   Flex,
 } from '@chakra-ui/react'
-import { SettingsIcon } from '@/components/icons'
+import { useState } from 'react'
+import { SettingsIcon, HardDriveIcon } from '@/components/icons'
 import { User } from '@typebot.io/prisma'
 import { WorkspaceInApp } from '../WorkspaceProvider'
 import packageJson from '../../../../../../package.json'
 import { UserPreferencesForm } from '@/features/account/components/UserPreferencesForm'
+import { WorkspaceSettingsForm } from './WorkspaceSettingsForm'
+import { useUser } from '@/features/account/hooks/useUser'
 import { useTranslate } from '@tolgee/react'
 import { useParentModal } from '@/features/graph/providers/ParentModalProvider'
 
@@ -31,9 +34,20 @@ type SettingsTab =
   | 'billing'
   | 'credentials'
 
-export const WorkspaceSettingsModal = ({ isOpen, user, onClose }: Props) => {
+export const WorkspaceSettingsModal = ({
+  isOpen,
+  user,
+  defaultTab,
+  onClose,
+}: Props) => {
   const { t } = useTranslate()
   const { ref } = useParentModal()
+  const { user: sessionUser } = useUser()
+  const [selectedTab, setSelectedTab] = useState<SettingsTab>(
+    defaultTab ?? 'user-settings'
+  )
+
+  const isAdmin = sessionUser?.isAdmin ?? false
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="4xl">
@@ -53,14 +67,35 @@ export const WorkspaceSettingsModal = ({ isOpen, user, onClose }: Props) => {
               </Text>
 
               <Button
+                variant={selectedTab === 'user-settings' ? 'solid' : 'ghost'}
                 leftIcon={<SettingsIcon />}
                 size="sm"
                 justifyContent="flex-start"
                 pl="4"
+                onClick={() => setSelectedTab('user-settings')}
               >
                 {t('workspace.settings.modal.menu.preferences.label')}
               </Button>
             </Stack>
+            {isAdmin && (
+              <Stack>
+                <Text pl="4" color="gray.500">
+                  {t('workspace.settings.modal.menu.workspace.label')}
+                </Text>
+                <Button
+                  variant={
+                    selectedTab === 'workspace-settings' ? 'solid' : 'ghost'
+                  }
+                  leftIcon={<HardDriveIcon />}
+                  size="sm"
+                  justifyContent="flex-start"
+                  pl="4"
+                  onClick={() => setSelectedTab('workspace-settings')}
+                >
+                  {t('workspace.settings.modal.menu.settings.label')}
+                </Button>
+              </Stack>
+            )}
           </Stack>
 
           <Flex justify="center" pt="10">
@@ -74,7 +109,11 @@ export const WorkspaceSettingsModal = ({ isOpen, user, onClose }: Props) => {
 
         {isOpen && (
           <Flex flex="1" p="10">
-            <UserPreferencesForm />
+            {selectedTab === 'workspace-settings' && isAdmin ? (
+              <WorkspaceSettingsForm onClose={onClose} />
+            ) : (
+              <UserPreferencesForm />
+            )}
           </Flex>
         )}
       </ModalContent>

@@ -18,11 +18,12 @@ import { useWorkspace } from '../WorkspaceProvider'
 import { TextInput } from '@/components/inputs'
 import { useTranslate } from '@tolgee/react'
 import { CopyButton } from '@/components/CopyButton'
+import { useUser } from '@/features/account/hooks/useUser'
 
 export const WorkspaceSettingsForm = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslate()
-  const { workspace, workspaces, updateWorkspace, deleteCurrentWorkspace } =
-    useWorkspace()
+  const { user } = useUser()
+  const { workspace, updateWorkspace, deleteCurrentWorkspace } = useWorkspace()
 
   const handleNameChange = (name: string) => {
     if (!workspace?.id) return
@@ -81,7 +82,7 @@ export const WorkspaceSettingsForm = ({ onClose }: { onClose: () => void }) => {
           </FormControl>
         </>
       )}
-      {workspace && workspaces && workspaces.length > 1 && (
+      {workspace && user?.isAdmin && (
         <DeleteWorkspaceButton
           onConfirm={handleDeleteClick}
           workspaceName={workspace?.name}
