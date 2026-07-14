@@ -21,6 +21,7 @@ import { preprocessTypebot } from '@typebot.io/schemas/features/typebot/helpers/
 import { migrateTypebot } from '@typebot.io/migrations/migrateTypebot'
 import { trackEvents } from '@typebot.io/telemetry/trackEvents'
 import { checkGroupLimits } from '@typebot.io/lib'
+import { isWorkspaceExcludedFromTypebotsLimit } from '@typebot.io/lib/checkTypebotsLimit'
 
 const omittedProps = {
   id: true,
@@ -138,19 +139,21 @@ export const importTypebot = authenticatedProcedure
           message: 'Workspace not found',
         })
 
-      // Check if workspace already has 5 typebots
-      const existingTypebotCount = await prisma.typebot.count({
-        where: {
-          workspaceId,
-          isArchived: { not: true },
-        },
-      })
-
-      if (existingTypebotCount >= 5) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Maximum limit of 5 typebots reached for this workspace',
+      if (!isWorkspaceExcludedFromTypebotsLimit(workspaceId)) {
+        // Check if workspace already has 5 typebots
+        const existingTypebotCount = await prisma.typebot.count({
+          where: {
+            workspaceId,
+            isArchived: { not: true },
+          },
         })
+
+        if (existingTypebotCount >= 5) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Maximum limit of 5 typebots reached for this workspace',
+          })
+        }
       }
 
       const migratedTypebot = await migrateImportingTypebot(typebot)

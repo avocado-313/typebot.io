@@ -74,6 +74,11 @@ const baseEnv = {
       .min(1)
       .optional()
       .transform((val) => val?.split(',')),
+    TYPEBOTS_LIMIT_EXCLUDED_WORKSPACE_IDS: z
+      .string()
+      .min(1)
+      .optional()
+      .transform((val) => val?.split(',')),
     DEFAULT_WORKSPACE_PLAN: z
       .enum(['FREE', 'STARTER', 'PRO', 'LIFETIME', 'UNLIMITED'])
       .refine((str) =>
