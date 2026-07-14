@@ -103,7 +103,6 @@ export const Graph = ({
   const [isDragging, setIsDragging] = useState(false)
 
   const graphContainerRef = useRef<HTMLDivElement | null>(null)
-  const editorContainerRef = useRef<HTMLDivElement | null>(null)
 
   useAutoMoveBoard(autoMoveDirection, setGraphPosition)
 
@@ -115,12 +114,6 @@ export const Graph = ({
       )}px) scale(${graphPosition.scale})`,
     [graphPosition]
   )
-
-  useEffect(() => {
-    editorContainerRef.current = document.getElementById(
-      'editor-container'
-    ) as HTMLDivElement
-  }, [])
 
   useEffect(() => {
     if (!graphContainerRef.current) return
@@ -329,7 +322,9 @@ export const Graph = ({
     capture: true,
   })
   useEventListener('mouseup', handleMouseUp, graphContainerRef.current)
-  useEventListener('pointerup', handlePointerUp, editorContainerRef.current)
+  useEventListener('pointerup', handlePointerUp, () =>
+    document.getElementById('editor-container')
+  )
   useEventListener('mousemove', handleMouseMove)
 
   // Make sure pinch doesn't interfere with native Safari zoom

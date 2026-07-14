@@ -12,6 +12,7 @@ import {
   sanitizeSettings,
   sanitizeVariables,
 } from '../helpers/sanitizers'
+import { isWorkspaceExcludedFromBotLimit } from '../helpers/isWorkspaceExcludedFromBotLimit'
 import { createId } from '@paralleldrive/cuid2'
 import { EventType } from '@typebot.io/schemas/features/events/constants'
 import { trackEvents } from '@typebot.io/telemetry/trackEvents'

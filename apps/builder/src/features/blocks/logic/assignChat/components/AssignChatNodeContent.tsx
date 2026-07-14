@@ -12,12 +12,16 @@ export const AssignChatNodeContent = ({ options }: Props) => {
   const { t } = useTranslate()
   const assignType: assignChatType | undefined = options?.assignType
   const email: string = options?.email || ''
+  const ruleName: string = options?.ruleName || ''
+
+  const target =
+    assignType === assignChatType.SMART_ASSIGNMENT ? ruleName : email
 
   return (
     <Text color="currentcolor" noOfLines={2}>
       {t('blocks.logic.assignChat.assignTo')}{' '}
       {assignType && <Tag>{t('blocks.logic.assignChat.' + assignType)}</Tag>}{' '}
-      {email && email}
+      {target && target}
     </Text>
   )
 }
