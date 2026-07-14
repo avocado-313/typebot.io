@@ -69,6 +69,10 @@ export const continueBotFlow = async (
   const visitedEdges: VisitedEdge[] = []
   const setVariableHistory: SetVariableHistoryItem[] = []
 
+  if (reply?.type === 'location') {
+    console.log('[AVC-DEBUG] continueBotFlow: location message received =', JSON.stringify(reply))
+  }
+
   if (!newSessionState.currentBlockId)
     return startBotFlow({
       state: resetSessionState(newSessionState),
@@ -200,7 +204,10 @@ export const continueBotFlow = async (
       block
     )(
       isDefined(formattedReply)
-        ? { ...reply, type: 'text', text: formattedReply }
+        ? // Preserve the original reply type (e.g. 'location') so the saved
+          // variable can keep the full structured value, not just the text.
+          // Default type to 'text' first so location replies can override it.
+          ({ type: 'text' as const, ...reply, text: formattedReply } as Message)
         : undefined
     )
   }
@@ -330,12 +337,13 @@ const saveAttachmentsVarIfAny = ({
 }): SessionState => {
   if (
     block.type !== InputBlockType.TEXT ||
+    reply.type !== 'text' ||
     !block.options?.attachments?.isEnabled ||
     !block.options?.attachments?.saveVariableId ||
     !reply.attachedFileUrls ||
     reply.attachedFileUrls.length === 0
   )
-    return state
+    return state;
 
   const variable = state.typebotsQueue[0].typebot.variables.find(
     (variable) => variable.id === block.options?.attachments?.saveVariableId
@@ -375,14 +383,34 @@ const saveInputVarIfAny = ({
   )
   if (!foundVariable) return state
 
+  if (reply.type === 'location') {
+    console.log('[AVC-DEBUG] saveInputVarIfAny: location reply received =', JSON.stringify(reply))
+  }
+
+  // For a location reply, persist the full structured object (coordinates,
+  // maps link, address, name) instead of only the plain text address. It is
+  // serialized to JSON by updateVariablesInSession, so the variable resolves
+  // to the complete location object when used in the flow.
+  const replyValue =
+    reply.type === 'location' ? buildLocationVariableValue(reply) : reply.text
+
+  if (reply.type === 'location') {
+    console.log(
+      `[AVC-DEBUG] saveInputVarIfAny: setting variable "${foundVariable.name}" (id=${foundVariable.id}) =`,
+      JSON.stringify(replyValue)
+    )
+  }
+
   const { updatedState } = updateVariablesInSession({
     newVariables: [
       {
         ...foundVariable,
         value:
-          Array.isArray(foundVariable.value) && reply.text
+          Array.isArray(foundVariable.value) &&
+          reply.type !== 'location' &&
+          reply.text
             ? foundVariable.value.concat(reply.text)
-            : reply.text,
+            : replyValue,
       },
     ],
     currentBlockId: undefined,
@@ -391,6 +419,17 @@ const saveInputVarIfAny = ({
 
   return updatedState
 }
+
+const buildLocationVariableValue = (
+  reply: Extract<Message, { type: 'location' }>
+) => ({
+  latitude: reply.latitude,
+  longitude: reply.longitude,
+  address: reply.address,
+  name: reply.name,
+  url: reply.url,
+  text: reply.text,
+})
 
 const parseRetryMessage =
   (state: SessionState) =>
@@ -446,7 +485,8 @@ const saveAnswerInDb =
       answer: {
         blockId: block.id,
         content: reply.text,
-        attachedFileUrls: reply.attachedFileUrls,
+        attachedFileUrls:
+          reply.type === 'text' ? reply.attachedFileUrls : undefined,
       },
       state,
     })
@@ -460,7 +500,8 @@ const saveAnswerInDb =
             answers: (newSessionState.previewMetadata?.answers ?? []).concat({
               blockId: block.id,
               content: reply.text,
-              attachedFileUrls: reply.attachedFileUrls,
+              attachedFileUrls:
+                reply.type === 'text' ? reply.attachedFileUrls : undefined,
             }),
           },
     }
@@ -474,7 +515,7 @@ const saveAnswerInDb =
     return setNewAnswerInState(newSessionState)({
       key: key ?? block.id,
       value:
-        (reply.attachedFileUrls ?? []).length > 0
+        reply.type === 'text' && (reply.attachedFileUrls ?? []).length > 0
           ? `${reply.attachedFileUrls!.join(', ')}\n\n${reply.text}`
           : reply.text,
     })
