@@ -67,9 +67,6 @@ export const snapshotTypebotToBackup = async (
         },
       })
   } catch (err) {
-    console.error(
-      `snapshotTypebotToBackup failed for ${sourceTypebotId}:`,
-      err
-    )
+    console.error(`snapshotTypebotToBackup failed for ${sourceTypebotId}:`, err)
   }
 }

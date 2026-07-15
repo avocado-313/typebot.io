@@ -61,7 +61,9 @@ export const restoreTypebot = authenticatedProcedure
       })
       if (
         !existingTypebot?.id ||
-        (await isWriteTypebotForbidden(existingTypebot, user))
+        (await isWriteTypebotForbidden(existingTypebot, user, {
+          allowSuperAdmin: true,
+        }))
       )
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Typebot not found' })
 

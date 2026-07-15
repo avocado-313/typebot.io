@@ -58,146 +58,151 @@ export const createTypebot = authenticatedProcedure
   )
   .mutation(
     async ({ input: { typebot, workspaceId, businessId }, ctx: { user } }) => {
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId },
-      select: { id: true, members: true, plan: true, businessId: true },
-    })
-    const userRole = getUserRoleInWorkspace(
-      user.id,
-      workspace?.members,
-      user.email ?? undefined
-    )
-    if (
-      userRole === undefined ||
-      userRole === WorkspaceRole.GUEST ||
-      !workspace
-    )
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Workspace not found' })
-
-    // Adopt the businessId onto the workspace when the caller (e.g. the Hub chatbot/setup
-    // flow) provides one and the workspace isn't yet associated with a business. This
-    // backfills legacy workspaces created before businessId existed, so future bots inherit it.
-    if (businessId && !workspace.businessId) {
-      // Check if another workspace already has this businessId
-      const existingWorkspaceWithBusiness = await prisma.workspace.findFirst({
-        where: { businessId, id: { not: workspace.id } },
-        select: { id: true },
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { id: true, members: true, plan: true, businessId: true },
       })
-      
-      if (existingWorkspaceWithBusiness) {
+      const userRole = getUserRoleInWorkspace(
+        user.id,
+        workspace?.members,
+        user.email ?? undefined
+      )
+      if (
+        userRole === undefined ||
+        userRole === WorkspaceRole.GUEST ||
+        !workspace
+      )
         throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'This business is already associated with another workspace',
+          code: 'NOT_FOUND',
+          message: 'Workspace not found',
+        })
+
+      // Adopt the businessId onto the workspace when the caller (e.g. the Hub chatbot/setup
+      // flow) provides one and the workspace isn't yet associated with a business. This
+      // backfills legacy workspaces created before businessId existed, so future bots inherit it.
+      if (businessId && !workspace.businessId) {
+        // Check if another workspace already has this businessId
+        const existingWorkspaceWithBusiness = await prisma.workspace.findFirst({
+          where: { businessId, id: { not: workspace.id } },
+          select: { id: true },
+        })
+
+        if (existingWorkspaceWithBusiness) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message:
+              'This business is already associated with another workspace',
+          })
+        }
+
+        await prisma.workspace.update({
+          where: { id: workspace.id },
+          data: { businessId },
         })
       }
 
-      await prisma.workspace.update({
-        where: { id: workspace.id },
-        data: { businessId },
-      })
-    }
-
-    // Enforce the 5-bot limit for every real workspace. The system backup ("azeer admin")
-    // workspace is exempt so it can hold unlimited copies.
-    const backupWorkspaceId = await getBackupWorkspaceId()
-    if (workspaceId !== backupWorkspaceId) {
-      const existingTypebotCount = await prisma.typebot.count({
-        where: {
-          workspaceId,
-          isArchived: { not: true },
-        },
-      })
-
-      if (existingTypebotCount >= 5) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Maximum limit of 5 typebots reached for this workspace',
-        })
-      }
-    }
-
-    if (
-      typebot.customDomain &&
-      (await isCustomDomainNotAvailable({
-        customDomain: typebot.customDomain,
-        workspaceId,
-      }))
-    )
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Custom domain not available',
-      })
-
-    if (typebot.publicId && (await isPublicIdNotAvailable(typebot.publicId)))
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Public id not available',
-      })
-
-    if (typebot.folderId) {
-      const existingFolder = await prisma.dashboardFolder.findUnique({
-        where: {
-          id: typebot.folderId,
-        },
-      })
-      if (!existingFolder) typebot.folderId = null
-    }
-
-    const groups = (
-      typebot.groups ? await sanitizeGroups(workspaceId)(typebot.groups) : []
-    ) as TypebotV6['groups']
-    const newTypebot = await prisma.typebot.create({
-      data: {
-        version: '6',
-        workspaceId,
-        name: typebot.name ?? 'My typebot',
-        icon: typebot.icon,
-        selectedThemeTemplateId: typebot.selectedThemeTemplateId,
-        groups,
-        events: typebot.events ?? [
-          {
-            type: EventType.START,
-            graphCoordinates: { x: 0, y: 0 },
-            id: createId(),
+      // Enforce the 5-bot limit for every real workspace. The system backup ("azeer admin")
+      // workspace is exempt so it can hold unlimited copies.
+      const backupWorkspaceId = await getBackupWorkspaceId()
+      if (workspaceId !== backupWorkspaceId) {
+        const existingTypebotCount = await prisma.typebot.count({
+          where: {
+            workspaceId,
+            isArchived: { not: true },
           },
-        ],
-        theme: typebot.theme ? typebot.theme : {},
-        settings: typebot.settings
-          ? sanitizeSettings(typebot.settings, workspace.plan, 'create')
-          : workspace.plan === Plan.FREE
-          ? {
-              general: { isBrandingEnabled: true },
-            }
-          : {},
-        folderId: typebot.folderId,
-        variables: typebot.variables
-          ? sanitizeVariables({ variables: typebot.variables, groups })
-          : [],
-        edges: typebot.edges ?? [],
-        resultsTablePreferences: typebot.resultsTablePreferences ?? undefined,
-        publicId: typebot.publicId ?? undefined,
-        customDomain: typebot.customDomain ?? undefined,
-        // Inherit the workspace's business when the caller doesn't specify one.
-        businessId: businessId ?? workspace.businessId ?? undefined,
-      } satisfies Partial<TypebotV6> & { businessId?: string },
-    })
+        })
 
-    const parsedNewTypebot = typebotV6Schema.parse(newTypebot)
+        if (existingTypebotCount >= 5) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Maximum limit of 5 typebots reached for this workspace',
+          })
+        }
+      }
 
-    await trackEvents([
-      {
-        name: 'Typebot created',
-        workspaceId: parsedNewTypebot.workspaceId,
-        typebotId: parsedNewTypebot.id,
-        userId: user.id,
+      if (
+        typebot.customDomain &&
+        (await isCustomDomainNotAvailable({
+          customDomain: typebot.customDomain,
+          workspaceId,
+        }))
+      )
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Custom domain not available',
+        })
+
+      if (typebot.publicId && (await isPublicIdNotAvailable(typebot.publicId)))
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Public id not available',
+        })
+
+      if (typebot.folderId) {
+        const existingFolder = await prisma.dashboardFolder.findUnique({
+          where: {
+            id: typebot.folderId,
+          },
+        })
+        if (!existingFolder) typebot.folderId = null
+      }
+
+      const groups = (
+        typebot.groups ? await sanitizeGroups(workspaceId)(typebot.groups) : []
+      ) as TypebotV6['groups']
+      const newTypebot = await prisma.typebot.create({
         data: {
-          name: newTypebot.name,
+          version: '6',
+          workspaceId,
+          name: typebot.name ?? 'My typebot',
+          icon: typebot.icon,
+          selectedThemeTemplateId: typebot.selectedThemeTemplateId,
+          groups,
+          events: typebot.events ?? [
+            {
+              type: EventType.START,
+              graphCoordinates: { x: 0, y: 0 },
+              id: createId(),
+            },
+          ],
+          theme: typebot.theme ? typebot.theme : {},
+          settings: typebot.settings
+            ? sanitizeSettings(typebot.settings, workspace.plan, 'create')
+            : workspace.plan === Plan.FREE
+            ? {
+                general: { isBrandingEnabled: true },
+              }
+            : {},
+          folderId: typebot.folderId,
+          variables: typebot.variables
+            ? sanitizeVariables({ variables: typebot.variables, groups })
+            : [],
+          edges: typebot.edges ?? [],
+          resultsTablePreferences: typebot.resultsTablePreferences ?? undefined,
+          publicId: typebot.publicId ?? undefined,
+          customDomain: typebot.customDomain ?? undefined,
+          // Inherit the workspace's business when the caller doesn't specify one.
+          businessId: businessId ?? workspace.businessId ?? undefined,
+        } satisfies Partial<TypebotV6> & { businessId?: string },
+      })
+
+      const parsedNewTypebot = typebotV6Schema.parse(newTypebot)
+
+      await trackEvents([
+        {
+          name: 'Typebot created',
+          workspaceId: parsedNewTypebot.workspaceId,
+          typebotId: parsedNewTypebot.id,
+          userId: user.id,
+          data: {
+            name: newTypebot.name,
+          },
         },
-      },
-    ])
+      ])
 
-    // Mirror the new bot into the backup workspace. Best-effort.
-    await snapshotTypebotToBackup(parsedNewTypebot.id)
+      // Mirror the new bot into the backup workspace. Best-effort.
+      await snapshotTypebotToBackup(parsedNewTypebot.id)
 
-    return { typebot: parsedNewTypebot }
-  })
+      return { typebot: parsedNewTypebot }
+    }
+  )

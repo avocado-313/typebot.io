@@ -44,108 +44,113 @@ export const createWorkspace = authenticatedProcedure
       }),
     })
   )
-  .mutation(async ({ input: { name, icon, businessId, memberEmail }, ctx: { user } }) => {
-    // Check if this businessId is already associated with another workspace
-    const existingWorkspaceWithBusiness = await prisma.workspace.findFirst({
-      where: { businessId },
-      select: { id: true },
-    })
-    
-    if (existingWorkspaceWithBusiness) {
-      throw new TRPCError({
-        code: 'CONFLICT',
-        message: 'This business is already associated with another workspace',
-      })
-    }
-
-    // If memberEmail is provided, find or create the user
-    let memberUserId: string | undefined
-    if (memberEmail) {
-      let memberUser = await prisma.user.findUnique({
-        where: { email: memberEmail },
+  .mutation(
+    async ({
+      input: { name, icon, businessId, memberEmail },
+      ctx: { user },
+    }) => {
+      // Check if this businessId is already associated with another workspace
+      const existingWorkspaceWithBusiness = await prisma.workspace.findFirst({
+        where: { businessId },
         select: { id: true },
       })
 
-      // Create user if they don't exist
-      if (!memberUser) {
-        memberUser = await prisma.user.create({
-          data: {
-            id: createId(),
-            email: memberEmail,
-            apiTokens: {
-              create: { name: 'Default', token: generateId(24) },
-            },
-            onboardingCategories: [],
-          },
+      if (existingWorkspaceWithBusiness) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'This business is already associated with another workspace',
+        })
+      }
+
+      // If memberEmail is provided, find or create the user
+      let memberUserId: string | undefined
+      if (memberEmail) {
+        let memberUser = await prisma.user.findUnique({
+          where: { email: memberEmail },
           select: { id: true },
         })
 
-        await trackEvents([
-          {
-            name: 'User created',
-            userId: memberUser.id,
+        // Create user if they don't exist
+        if (!memberUser) {
+          memberUser = await prisma.user.create({
             data: {
+              id: createId(),
               email: memberEmail,
+              apiTokens: {
+                create: { name: 'Default', token: generateId(24) },
+              },
+              onboardingCategories: [],
             },
-          },
-        ])
+            select: { id: true },
+          })
+
+          await trackEvents([
+            {
+              name: 'User created',
+              userId: memberUser.id,
+              data: {
+                email: memberEmail,
+              },
+            },
+          ])
+        }
+
+        memberUserId = memberUser.id
       }
 
-      memberUserId = memberUser.id
-    }
-
-    const existingWorkspaceNames = (await prisma.workspace.findMany({
-      where: {
-        members: {
-          some: {
-            userId: user.id,
+      const existingWorkspaceNames = (await prisma.workspace.findMany({
+        where: {
+          members: {
+            some: {
+              userId: user.id,
+            },
           },
         },
-      },
-      select: { name: true },
-    })) as Pick<Workspace, 'name'>[]
+        select: { name: true },
+      })) as Pick<Workspace, 'name'>[]
 
-    if (existingWorkspaceNames.some((workspace) => workspace.name === name))
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Workspace with same name already exists',
-      })
+      if (existingWorkspaceNames.some((workspace) => workspace.name === name))
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Workspace with same name already exists',
+        })
 
-    const plan = parseWorkspaceDefaultPlan(memberEmail || user.email || '')
+      const plan = parseWorkspaceDefaultPlan(memberEmail || user.email || '')
 
-    // Build members array: authenticated user + optional member
-    const members: { role: 'ADMIN'; userId: string }[] = [
-      { role: 'ADMIN', userId: user.id },
-    ]
+      // Build members array: authenticated user + optional member
+      const members: { role: 'ADMIN'; userId: string }[] = [
+        { role: 'ADMIN', userId: user.id },
+      ]
 
-    // Add memberEmail user if provided and different from authenticated user
-    if (memberUserId && memberUserId !== user.id) {
-      members.push({ role: 'ADMIN', userId: memberUserId })
-    }
+      // Add memberEmail user if provided and different from authenticated user
+      if (memberUserId && memberUserId !== user.id) {
+        members.push({ role: 'ADMIN', userId: memberUserId })
+      }
 
-    const newWorkspace = (await prisma.workspace.create({
-      data: {
-        name,
-        icon,
-        members: { create: members },
-        plan,
-        businessId,
-      },
-    })) as Workspace
-
-    await trackEvents([
-      {
-        name: 'Workspace created',
-        workspaceId: newWorkspace.id,
-        userId: user.id,
+      const newWorkspace = (await prisma.workspace.create({
         data: {
           name,
+          icon,
+          members: { create: members },
           plan,
+          businessId,
         },
-      },
-    ])
+      })) as Workspace
 
-    return {
-      workspace: newWorkspace,
+      await trackEvents([
+        {
+          name: 'Workspace created',
+          workspaceId: newWorkspace.id,
+          userId: user.id,
+          data: {
+            name,
+            plan,
+          },
+        },
+      ])
+
+      return {
+        workspace: newWorkspace,
+      }
     }
-  })
+  )

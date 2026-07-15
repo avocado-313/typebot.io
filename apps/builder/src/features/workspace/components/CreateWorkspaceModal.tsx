@@ -39,10 +39,7 @@ export const CreateWorkspaceModal = ({ isOpen, onClose, onSubmit }: Props) => {
     if (!canSubmit || isCreating) return
     setIsCreating(true)
     try {
-      await onSubmit(
-        businessId.trim(),
-        memberEmail.trim() || undefined
-      )
+      await onSubmit(businessId.trim(), memberEmail.trim() || undefined)
       resetAndClose()
     } catch (error) {
       // Error is already shown via toast by the mutation
@@ -81,7 +78,8 @@ export const CreateWorkspaceModal = ({ isOpen, onClose, onSubmit }: Props) => {
                 placeholder="user@example.com"
               />
               <FormHelperText>
-                Email of the user who should be a member of this workspace. If the user doesn&apos;t exist, they will be created.
+                Email of the user who should be a member of this workspace. If
+                the user doesn&apos;t exist, they will be created.
               </FormHelperText>
             </FormControl>
           </Stack>
