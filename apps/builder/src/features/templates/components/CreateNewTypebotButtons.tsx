@@ -106,19 +106,19 @@ export const CreateNewTypebotButtons = () => {
       {workspace?.id !== env.NEXT_PUBLIC_BACKUP_WORKSPACE_ID &&
         typebotCount &&
         typebotCount.typebots.length >= 4 && (
-        <Alert status="warning" borderRadius="md">
-          <AlertIcon />
-          <AlertDescription>
-            {typebotCount.typebots.length === 5
-              ? 'You have reached the maximum limit of 5 typebots for this workspace.'
-              : `You have ${
-                  typebotCount.typebots.length
-                } typebots. You can create ${
-                  5 - typebotCount.typebots.length
-                } more.`}
-          </AlertDescription>
-        </Alert>
-      )}
+          <Alert status="warning" borderRadius="md">
+            <AlertIcon />
+            <AlertDescription>
+              {typebotCount.typebots.length === 5
+                ? 'You have reached the maximum limit of 5 typebots for this workspace.'
+                : `You have ${
+                    typebotCount.typebots.length
+                  } typebots. You can create ${
+                    5 - typebotCount.typebots.length
+                  } more.`}
+            </AlertDescription>
+          </Alert>
+        )}
 
       <Stack w="full" spacing={6}>
         <Button

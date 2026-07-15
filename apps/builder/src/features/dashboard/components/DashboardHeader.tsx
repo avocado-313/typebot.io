@@ -21,7 +21,8 @@ import { WorkspaceDropdown } from '@/features/workspace/components/WorkspaceDrop
 export const DashboardHeader = () => {
   const { t } = useTranslate()
   const { asPath, back, push } = useRouter()
-  const { workspace, workspaces, switchWorkspace, createWorkspace } = useWorkspace()
+  const { workspace, workspaces, switchWorkspace, createWorkspace } =
+    useWorkspace()
   const { user, logOut } = useUser()
 
   const isRedirectFromCredentialsCreation = asPath.includes('preferences')
@@ -37,10 +38,10 @@ export const DashboardHeader = () => {
   } = useDisclosure()
 
   const handleCreateNewWorkspace = (businessId: string, memberEmail?: string) =>
-    createWorkspace({ 
-      businessId, 
+    createWorkspace({
+      businessId,
       memberEmail,
-      userFullName: user?.name ?? undefined 
+      userFullName: user?.name ?? undefined,
     })
 
   const handleBackNavigation = () => {

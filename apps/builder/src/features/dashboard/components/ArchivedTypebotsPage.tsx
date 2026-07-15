@@ -78,8 +78,8 @@ export const ArchivedTypebotsPage = () => {
         </HStack>
         <Text color="gray.500">
           Soft-deleted bots for {workspace?.name ?? 'this workspace'}. Restoring
-          re-adds a bot to the dashboard (subject to the 5-bot limit); it does not
-          re-publish it.
+          re-adds a bot to the dashboard (subject to the 5-bot limit); it does
+          not re-publish it.
         </Text>
 
         {isLoading ? (

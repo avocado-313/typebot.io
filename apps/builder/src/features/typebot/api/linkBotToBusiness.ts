@@ -100,15 +100,17 @@ export const linkBotToBusiness = adminProcedure
         // created here inherit it. Don't clobber an existing (possibly different) business.
         if (!workspace.businessId) {
           // Check if another workspace already has this businessId
-          const existingWorkspaceWithBusiness = await prisma.workspace.findFirst({
-            where: { businessId, id: { not: workspace.id } },
-            select: { id: true },
-          })
-          
+          const existingWorkspaceWithBusiness =
+            await prisma.workspace.findFirst({
+              where: { businessId, id: { not: workspace.id } },
+              select: { id: true },
+            })
+
           if (existingWorkspaceWithBusiness) {
             throw new TRPCError({
               code: 'CONFLICT',
-              message: 'This business is already associated with another workspace',
+              message:
+                'This business is already associated with another workspace',
             })
           }
 
@@ -123,11 +125,12 @@ export const linkBotToBusiness = adminProcedure
           where: { businessId },
           select: { id: true },
         })
-        
+
         if (existingWorkspaceWithBusiness) {
           throw new TRPCError({
             code: 'CONFLICT',
-            message: 'This business is already associated with another workspace',
+            message:
+              'This business is already associated with another workspace',
           })
         }
 

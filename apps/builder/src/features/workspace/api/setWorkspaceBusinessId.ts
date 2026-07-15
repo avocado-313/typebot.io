@@ -16,7 +16,8 @@ export const setWorkspaceBusinessId = authenticatedProcedure
       method: 'PATCH',
       path: '/v1/workspaces/{workspaceId}/business',
       protect: true,
-      summary: 'Associate a workspace with a business (only if not already set)',
+      summary:
+        'Associate a workspace with a business (only if not already set)',
       tags: ['Workspace'],
     },
   })
@@ -48,7 +49,7 @@ export const setWorkspaceBusinessId = authenticatedProcedure
       where: { businessId, id: { not: workspace.id } },
       select: { id: true },
     })
-    
+
     if (existingWorkspaceWithBusiness) {
       throw new TRPCError({
         code: 'CONFLICT',

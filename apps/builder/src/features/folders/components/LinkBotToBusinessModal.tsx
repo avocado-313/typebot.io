@@ -67,7 +67,9 @@ export const LinkBotToBusinessModal = ({
         showToast({
           status: 'error',
           title: 'Bot duplicated & published, but Hub link failed',
-          description: `The bot exists in workspace ${data.workspaceId}, but the Hub channel was not updated: ${
+          description: `The bot exists in workspace ${
+            data.workspaceId
+          }, but the Hub channel was not updated: ${
             data.hubError ?? 'unknown error'
           }. You can retry the link.`,
         })
@@ -102,7 +104,8 @@ export const LinkBotToBusinessModal = ({
         mode === 'existing' ? targetWorkspaceId.trim() : undefined,
       newWorkspaceName: mode === 'new' ? newWorkspaceName.trim() : undefined,
       newName: newName.trim() || undefined,
-      memberEmail: mode === 'new' && memberEmail.trim() ? memberEmail.trim() : undefined,
+      memberEmail:
+        mode === 'new' && memberEmail.trim() ? memberEmail.trim() : undefined,
     })
   }
 
@@ -110,7 +113,9 @@ export const LinkBotToBusinessModal = ({
     <Modal isOpen={isOpen} onClose={resetAndClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Link &quot;{sourceTypebotName}&quot; to a business</ModalHeader>
+        <ModalHeader>
+          Link &quot;{sourceTypebotName}&quot; to a business
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody as="form" onSubmit={submit}>
           <Stack spacing="4">
@@ -166,7 +171,8 @@ export const LinkBotToBusinessModal = ({
                     placeholder="user@example.com"
                   />
                   <FormHelperText>
-                    Email of the user who should be a member of this workspace. If the user doesn&apos;t exist, they will be created.
+                    Email of the user who should be a member of this workspace.
+                    If the user doesn&apos;t exist, they will be created.
                   </FormHelperText>
                 </FormControl>
               </>
