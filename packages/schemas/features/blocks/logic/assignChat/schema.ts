@@ -6,6 +6,10 @@ import { assignChatType, assignChatTypeOptions } from './constants'
 export const assignChatOptionsSchema = z.object({
   assignType: z.enum(assignChatTypeOptions).optional(),
   email: z.string().optional(),
+  // Set only when assignType === 'smart_assignment': the Smart Assignment rule
+  // the chat is handed off to. ruleName is stored for display in the builder.
+  ruleId: z.string().optional(),
+  ruleName: z.string().optional(),
 })
 
 export const assignChatBlockSchema = blockBaseSchema.merge(
