@@ -6,6 +6,7 @@ import { internalWhatsAppRouter } from '@/features/whatsapp/router'
 import { forgeRouter } from '@/features/forge/api/router'
 import { googleSheetsRouter } from '@/features/blocks/integrations/googleSheets/api/router'
 import { telemetryRouter } from '@/features/telemetry/api/router'
+import { assignChatRouter } from '@/features/blocks/logic/assignChat/api/router'
 
 export const internalRouter = router({
   getAppVersionProcedure,
@@ -15,6 +16,7 @@ export const internalRouter = router({
   forge: forgeRouter,
   sheets: googleSheetsRouter,
   telemetry: telemetryRouter,
+  assignChat: assignChatRouter,
 })
 
 export type InternalRouter = typeof internalRouter
