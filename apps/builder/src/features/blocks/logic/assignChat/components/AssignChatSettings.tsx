@@ -1,5 +1,6 @@
 import { DropdownList } from '@/components/DropdownList'
 import { TextInput } from '@/components/inputs'
+import { Select } from '@/components/inputs/Select'
 import { Stack } from '@chakra-ui/react'
 import { useTranslate } from '@tolgee/react'
 import { AssignChatBlock } from '@typebot.io/schemas'
@@ -7,6 +8,8 @@ import {
   assignChatType,
   assignChatTypeOptions,
 } from '@typebot.io/schemas/features/blocks/logic/assignChat/constants'
+import { useWorkspace } from '@/features/workspace/WorkspaceProvider'
+import { trpc } from '@/lib/trpc'
 
 type Props = {
   options: AssignChatBlock['options']
@@ -15,6 +18,17 @@ type Props = {
 
 export const AssignChatSettings = ({ options, onOptionsChange }: Props) => {
   const { t } = useTranslate()
+  const { workspace } = useWorkspace()
+
+  const isSmartAssignment =
+    options?.assignType === assignChatType.SMART_ASSIGNMENT
+
+  const { data: rulesData, isLoading: isLoadingRules } =
+    trpc.assignChat.listSmartAssignmentRules.useQuery(
+      { workspaceId: workspace?.id as string },
+      { enabled: !!workspace?.id && isSmartAssignment }
+    )
+
   const handleEmailChange = (email: string) =>
     onOptionsChange({
       assignType: options?.assignType,
@@ -24,6 +38,13 @@ export const AssignChatSettings = ({ options, onOptionsChange }: Props) => {
   const updateAssignChatType = (type: assignChatType) =>
     onOptionsChange({
       assignType: type,
+    })
+
+  const updateRule = (ruleId: string | undefined, item?: { label: string }) =>
+    onOptionsChange({
+      assignType: options?.assignType,
+      ruleId,
+      ruleName: item?.label,
     })
 
   return (
@@ -48,6 +69,21 @@ export const AssignChatSettings = ({ options, onOptionsChange }: Props) => {
           )}
           type="email"
           onChange={handleEmailChange}
+        />
+      )}
+      {isSmartAssignment && (
+        <Select
+          selectedItem={options?.ruleId}
+          items={(rulesData?.rules ?? []).map((rule) => ({
+            label: rule.name,
+            value: rule.id,
+          }))}
+          onSelect={updateRule}
+          placeholder={
+            isLoadingRules
+              ? t('blocks.logic.assignChat.rule.loading')
+              : t('blocks.logic.assignChat.rule.placeholder')
+          }
         />
       )}
     </Stack>

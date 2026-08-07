@@ -22,6 +22,16 @@ export const executeAssignChat = (
     assign['email'] = block.options.email
   }
 
+  if (assignType === assignChatType.SMART_ASSIGNMENT) {
+    if (!block.options?.ruleId)
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'You forgot to select a smart assignment rule',
+      })
+    assign['ruleId'] = block.options.ruleId
+    if (block.options?.ruleName) assign['ruleName'] = block.options.ruleName
+  }
+
   return {
     outgoingEdgeId: undefined,
     clientSideActions: [
