@@ -186,6 +186,15 @@ const smtpEnv = {
   },
 }
 
+const sesEnv = {
+  server: {
+    SES_ACCESS_KEY_ID: z.string().min(1).optional(),
+    SES_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    SES_REGION: z.string().min(1).optional(),
+    SES_FROM_EMAIL: z.string().min(1).optional(),
+  },
+}
+
 const gitlabEnv = {
   server: {
     GITLAB_CLIENT_ID: z.string().min(1).optional(),
@@ -465,6 +474,7 @@ export const env = createEnv({
     ...githubEnv.server,
     ...facebookEnv.server,
     ...smtpEnv.server,
+    ...sesEnv.server,
     ...googleEnv.server,
     ...stripeEnv.server,
     ...s3Env.server,
