@@ -16,6 +16,7 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@faire/mjml-react": "3.3.0",
+    "@sendgrid/mail": "8.1.3",
     "@types/node": "20.4.2",
     "@types/nodemailer": "6.4.14",
     "@types/react": "18.2.15",

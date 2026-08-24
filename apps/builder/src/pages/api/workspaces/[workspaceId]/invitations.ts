@@ -51,13 +51,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       })
       if (!env.NEXT_PUBLIC_E2E_TEST)
-        await sendWorkspaceMemberInvitationEmail({
-          to: data.email,
-          workspaceName: workspace.name,
-          guestEmail: data.email,
-          url: `${env.NEXTAUTH_URL}/typebots?workspaceId=${workspace.id}`,
-          hostEmail: user.email ?? '',
-        })
+        try {
+          await sendWorkspaceMemberInvitationEmail({
+            to: data.email,
+            workspaceName: workspace.name,
+            guestEmail: data.email,
+            url: `${env.NEXTAUTH_URL}/typebots?workspaceId=${workspace.id}`,
+            hostEmail: user.email ?? '',
+          })
+        } catch (err) {
+          console.error('Failed to send workspace member invitation email', err)
+        }
       return res.send({
         member: {
           userId: existingUser.id,
@@ -70,13 +74,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     } else {
       const invitation = await prisma.workspaceInvitation.create({ data })
       if (!env.NEXT_PUBLIC_E2E_TEST)
-        await sendWorkspaceMemberInvitationEmail({
-          to: data.email,
-          workspaceName: workspace.name,
-          guestEmail: data.email,
-          url: `${env.NEXTAUTH_URL}/typebots?workspaceId=${workspace.id}`,
-          hostEmail: user.email ?? '',
-        })
+        try {
+          await sendWorkspaceMemberInvitationEmail({
+            to: data.email,
+            workspaceName: workspace.name,
+            guestEmail: data.email,
+            url: `${env.NEXTAUTH_URL}/typebots?workspaceId=${workspace.id}`,
+            hostEmail: user.email ?? '',
+          })
+        } catch (err) {
+          console.error('Failed to send workspace member invitation email', err)
+        }
       return res.send({ invitation })
     }
   }
