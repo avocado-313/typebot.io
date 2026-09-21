@@ -16,7 +16,7 @@ export const checkGroupLimits = async (
   workspaceId: string
 ): Promise<GroupLimitResponse> => {
   if (isWorkspaceExcludedFromGroupsLimit(workspaceId)) {
-    return { maxGroups: Number.MAX_SAFE_INTEGER }
+    return { maxGroups: Infinity }
   }
   const maxGroupsNumber = Number(env.NEXT_PUBLIC_HUB_MAX_GROUPS)
   try {
