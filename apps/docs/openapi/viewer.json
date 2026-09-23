@@ -4366,9 +4366,6 @@
                             "properties": {
                               "secondsToWaitFor": {
                                 "type": "string"
-                              },
-                              "shouldPause": {
-                                "type": "boolean"
                               }
                             }
                           }
@@ -8655,9 +8652,6 @@
                 "properties": {
                   "secondsToWaitFor": {
                     "type": "string"
-                  },
-                  "shouldPause": {
-                    "type": "boolean"
                   }
                 }
               }
