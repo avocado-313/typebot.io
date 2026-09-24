@@ -18,6 +18,7 @@ import { AssignChatSettings } from '@/features/blocks/logic/assignChat/component
 import { MakeComSettings } from '@/features/blocks/integrations/makeCom/components/MakeComSettings'
 import { PabblyConnectSettings } from '@/features/blocks/integrations/pabbly/components/PabblyConnectSettings'
 import { ButtonsBlockSettings } from '@/features/blocks/inputs/buttons/components/ButtonsBlockSettings'
+import { ListBlockSettings } from '@/features/blocks/inputs/buttons/components/ListBlockSettings'
 import { FileInputSettings } from '@/features/blocks/inputs/fileUpload/components/FileInputSettings'
 import { PaymentSettings } from '@/features/blocks/inputs/payment/components/PaymentSettings'
 import { RatingInputSettings } from '@/features/blocks/inputs/rating/components/RatingInputSettings'
@@ -41,6 +42,7 @@ import { PictureChoiceSettings } from '@/features/blocks/inputs/pictureChoice/co
 import { SettingsHoverBar } from './SettingsHoverBar'
 import { PixelSettings } from '@/features/blocks/integrations/pixel/components/PixelSettings'
 import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
+import { interactiveButtonType } from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 import { IntegrationBlockType } from '@typebot.io/schemas/features/blocks/integrations/constants'
 import { LogicBlockType } from '@typebot.io/schemas/features/blocks/logic/constants'
 import { ForgedBlockSettings } from '../../../../forge/components/ForgedBlockSettings'
@@ -187,7 +189,13 @@ export const BlockSettings = ({
       )
     }
     case InputBlockType.CHOICE: {
-      return (
+      return block.options?.interactiveButtonType ===
+        interactiveButtonType.LIST ? (
+        <ListBlockSettings
+          options={block.options}
+          onOptionsChange={updateOptions}
+        />
+      ) : (
         <ButtonsBlockSettings
           options={block.options}
           onOptionsChange={updateOptions}

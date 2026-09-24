@@ -1,11 +1,8 @@
 import { HStack } from '@chakra-ui/react'
 import React from 'react'
 import { BlockIcon } from './BlockIcon'
-import { isFreePlan } from '@/features/billing/helpers/isFreePlan'
-import { Plan } from '@typebot.io/prisma'
-import { useWorkspace } from '@/features/workspace/WorkspaceProvider'
 import { BlockLabel } from './BlockLabel'
-import { LockTag } from '@/features/billing/components/LockTag'
+import { LockedIcon } from '@/components/icons'
 import { useTranslate } from '@tolgee/react'
 import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/constants'
 import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
@@ -16,6 +13,7 @@ import { BlockCardLayout } from './BlockCardLayout'
 import { ForgedBlockCard } from '@/features/forge/ForgedBlockCard'
 import { isForgedBlockType } from '@typebot.io/schemas/features/blocks/forged/helpers'
 import { ForgedBlock } from '@typebot.io/forge-repository/types'
+import { useComponentLockState } from '../hooks/useComponentLockState'
 
 type Props = {
   type: BlockV6['type']
@@ -29,29 +27,27 @@ export const BlockCard = (
   props: Pick<Props, 'type' | 'onMouseDown'>
 ): JSX.Element => {
   const { t } = useTranslate()
-  const { workspace } = useWorkspace()
+  // Called unconditionally (Rules of Hooks) even though the forged-block branch
+  // below doesn't use the result — ForgedBlockCard computes its own lock state.
+  const { isDisabled, tooltip: lockTooltip } = useComponentLockState(props.type)
 
   if (isForgedBlockType(props.type)) {
     return <ForgedBlockCard type={props.type} onMouseDown={props.onMouseDown} />
   }
 
-  const tooltip = getBlockCardTooltip(props.type, t)
-
-  if (props.type === InputBlockType.FILE)
-    return (
-      <BlockCardLayout {...props} tooltip={tooltip}>
-        <BlockIcon type={props.type} />
-        <HStack>
-          <BlockLabel type={props.type} />
-          {isFreePlan(workspace) && <LockTag plan={Plan.STARTER} />}
-        </HStack>
-      </BlockCardLayout>
-    )
+  const defaultTooltip = getBlockCardTooltip(props.type, t)
 
   return (
-    <BlockCardLayout {...props} tooltip={tooltip}>
+    <BlockCardLayout
+      {...props}
+      isDisabled={isDisabled}
+      tooltip={lockTooltip ?? defaultTooltip}
+    >
       <BlockIcon type={props.type} />
-      <BlockLabel type={props.type} />
+      <HStack flex="1" justifyContent="space-between">
+        <BlockLabel type={props.type} />
+        {isDisabled && <LockedIcon flexShrink={0} color="gray.400" />}
+      </HStack>
     </BlockCardLayout>
   )
 }

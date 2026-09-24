@@ -470,14 +470,6 @@ const hubEnv = {
     ),
   },
 }
-const kbEnv = {
-  client: {
-    NEXT_PUBLIC_KB_BASE_URL: z.string().url().optional(),
-  },
-  runtimeEnv: {
-    NEXT_PUBLIC_KB_BASE_URL: getRuntimeVariable('NEXT_PUBLIC_KB_BASE_URL'),
-  },
-}
 export const env = createEnv({
   server: {
     ...baseEnv.server,
@@ -513,7 +505,6 @@ export const env = createEnv({
     ...sentryEnv.client,
     ...posthogEnv.client,
     ...tolgeeEnv.client,
-    ...kbEnv.client,
   },
   experimental__runtimeEnv: {
     ...baseEnv.runtimeEnv,
@@ -528,7 +519,6 @@ export const env = createEnv({
     ...sentryEnv.runtimeEnv,
     ...posthogEnv.runtimeEnv,
     ...tolgeeEnv.runtimeEnv,
-    ...kbEnv.runtimeEnv,
   },
   skipValidation:
     process.env.SKIP_ENV_CHECK === 'true' ||
