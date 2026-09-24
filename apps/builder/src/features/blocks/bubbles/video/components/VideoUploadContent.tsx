@@ -82,7 +82,7 @@ export const VideoUploadContent = ({
               maxSizeInMB={maxVideoUploadSizeInMB}
               colorScheme="orange"
             >
-              {t('editor.header.uploadTab.uploadButton.label')}
+              {t('video.settings.chooseFile.label')}
             </UploadButton>
           </Flex>
         )}
