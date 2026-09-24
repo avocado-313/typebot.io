@@ -99,7 +99,7 @@ export const EmbedUploadContent = ({
               maxSizeInMB={maxDocumentUploadSizeInMB}
               colorScheme="orange"
             >
-              {t('editor.header.uploadTab.uploadButton.label')}
+              {t('editor.blocks.bubbles.embed.settings.chooseFile.label')}
             </UploadButton>
           </Flex>
         )}
