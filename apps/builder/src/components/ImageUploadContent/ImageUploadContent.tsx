@@ -8,6 +8,7 @@ import { UnsplashPicker } from './UnsplashPicker'
 import { IconPicker } from './IconPicker'
 import { FilePathUploadProps } from '@/features/upload/api/generateUploadUrl'
 import { useTranslate } from '@tolgee/react'
+import { ImagePreview } from './ImagePreview'
 
 type Tabs = 'link' | 'upload' | 'giphy' | 'emoji' | 'unsplash' | 'icon'
 
@@ -31,8 +32,8 @@ type Props = {
 )
 
 const defaultDisplayedTabs: Tabs[] = [
-  'link',
   'upload',
+  'link',
   // 'giphy',
   // 'emoji',
   // 'unsplash',
@@ -64,7 +65,10 @@ export const ImageUploadContent = ({
     initialTab ?? displayedTabs[0]
   )
 
+  const [previewUrl, setPreviewUrl] = useState(defaultUrl)
+
   const handleSubmit = (url: string) => {
+    setPreviewUrl(url)
     onSubmit(url)
     onClose && onClose()
   }
@@ -72,15 +76,6 @@ export const ImageUploadContent = ({
   return (
     <Stack>
       <HStack>
-        {displayedTabs.includes('link') && (
-          <Button
-            variant={currentTab === 'link' ? 'solid' : 'ghost'}
-            onClick={() => setCurrentTab('link')}
-            size="sm"
-          >
-            Link
-          </Button>
-        )}
         {displayedTabs.includes('upload') && (
           <Button
             variant={currentTab === 'upload' ? 'solid' : 'ghost'}
@@ -88,6 +83,15 @@ export const ImageUploadContent = ({
             size="sm"
           >
             Upload
+          </Button>
+        )}
+        {displayedTabs.includes('link') && (
+          <Button
+            variant={currentTab === 'link' ? 'solid' : 'ghost'}
+            onClick={() => setCurrentTab('link')}
+            size="sm"
+          >
+            Link
           </Button>
         )}
         {displayedTabs.includes('emoji') && (
@@ -138,9 +142,18 @@ export const ImageUploadContent = ({
         acceptedFileTypes={acceptedFileTypes}
         maxUploadFileSizeInMB={maxUploadFileSizeInMB}
       />
+
+      {(currentTab === 'upload' || currentTab === 'link') &&
+        isPreviewableUrl(previewUrl) && (
+          <ImagePreview url={previewUrl} maxH="200px" mx="auto" />
+        )}
     </Stack>
   )
 }
+
+const isPreviewableUrl = (url: string | undefined): url is string =>
+  !!url &&
+  (url.startsWith('http') || (url.includes('{{') && url.includes('}}')))
 
 const BodyContent = ({
   uploadFileProps,
