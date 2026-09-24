@@ -214,6 +214,8 @@ Used for uploading images, videos, etc... It can be any S3 compatible object sto
 | S3_REGION               |         | S3 region.                                                                         |
 | S3_PUBLIC_CUSTOM_DOMAIN |         | If the final URL that is used to read public files is different from `S3_ENDPOINT` |
 
+Public file URLs are always built as `http(s)://<S3_ENDPOINT>[:<S3_PORT>]/<S3_BUCKET>/<key>`, so they point at the same bucket files are uploaded to. `S3_PUBLIC_CUSTOM_DOMAIN` is only used to recognize older file URLs when deleting them.
+
 Note that for AWS S3, your endpoint is usually: `s3.<S3_REGION>.amazonaws.com`
 
 In order to function properly, your S3 bucket must be configured. Make sure to read through the [S3 configuration](./guides/s3) doc.

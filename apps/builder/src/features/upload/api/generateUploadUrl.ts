@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { env } from '@typebot.io/env'
 import { TRPCError } from '@trpc/server'
 import { generatePresignedPostPolicy } from '@typebot.io/lib/s3/generatePresignedPostPolicy'
+import { getPublicFileUrl } from '@typebot.io/lib/s3/getPublicFileUrl'
 import prisma from '@typebot.io/lib/prisma'
 import { isWriteWorkspaceForbidden } from '@/features/workspace/helpers/isWriteWorkspaceForbidden'
 import { isWriteTypebotForbidden } from '@/features/typebot/helpers/isWriteTypebotForbidden'
@@ -76,9 +77,7 @@ export const generateUploadUrl = authenticatedProcedure
       return {
         presignedUrl: presignedPostPolicy.postURL,
         formData: presignedPostPolicy.formData,
-        fileUrl: env.S3_PUBLIC_CUSTOM_DOMAIN
-          ? `${env.S3_PUBLIC_CUSTOM_DOMAIN}/${filePath}`
-          : `${presignedPostPolicy.postURL}/${presignedPostPolicy.formData.key}`,
+        fileUrl: getPublicFileUrl(filePath),
       }
     }
   )
