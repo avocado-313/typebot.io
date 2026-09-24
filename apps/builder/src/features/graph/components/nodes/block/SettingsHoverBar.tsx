@@ -1,16 +1,10 @@
-import { BuoyIcon, ExpandIcon } from '@/components/icons'
-import {
-  Button,
-  HStack,
-  IconButton,
-  Link,
-  useColorModeValue,
-} from '@chakra-ui/react'
+import { ExpandIcon } from '@/components/icons'
+import { HStack, IconButton, useColorModeValue } from '@chakra-ui/react'
 import { BlockWithOptions } from '@typebot.io/schemas'
 import { getHelpDocUrl } from '@/features/graph/helpers/getHelpDocUrl'
-import { useTranslate } from '@tolgee/react'
 import { VideoOnboardingPopover } from '@/features/onboarding/components/VideoOnboardingPopover'
 import { forgedBlocks } from '@typebot.io/forge-repository/definitions'
+import { HelpDocLink } from './HelpDocLink'
 
 type Props = {
   blockType: BlockWithOptions['type']
@@ -27,7 +21,6 @@ export const SettingsHoverBar = ({
   onExpandClick,
   onVideoOnboardingClick,
 }: Props) => {
-  const { t } = useTranslate()
   const helpDocUrl = getHelpDocUrl(blockType, blockDef)
   return (
     <HStack
@@ -48,21 +41,14 @@ export const SettingsHoverBar = ({
         size="xs"
       />
       {helpDocUrl && (
-        <Button
-          as={Link}
-          leftIcon={<BuoyIcon />}
+        <HelpDocLink
+          helpDocUrl={helpDocUrl}
           borderLeftRadius="none"
           borderRightRadius={
             isVideoOnboardingItemDisplayed ? 'none' : undefined
           }
           borderRightWidth={isVideoOnboardingItemDisplayed ? '1px' : undefined}
-          size="xs"
-          variant="ghost"
-          href={helpDocUrl}
-          isExternal
-        >
-          {t('help')}
-        </Button>
+        />
       )}
       {isVideoOnboardingItemDisplayed && (
         <VideoOnboardingPopover.TriggerIconButton
