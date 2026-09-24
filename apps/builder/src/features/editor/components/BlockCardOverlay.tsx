@@ -5,8 +5,14 @@ import { BlockV6 } from '@typebot.io/schemas'
 
 export const BlockCardOverlay = ({
   type,
+  icon,
+  label,
   ...props
-}: StackProps & { type: BlockV6['type'] }) => {
+}: StackProps & {
+  type: BlockV6['type']
+  icon?: JSX.Element
+  label?: JSX.Element
+}) => {
   return (
     <HStack
       borderWidth="1px"
@@ -23,8 +29,8 @@ export const BlockCardOverlay = ({
       zIndex={2}
       {...props}
     >
-      <BlockIcon type={type} />
-      <BlockLabel type={type} />
+      {icon ?? <BlockIcon type={type} />}
+      {label ?? <BlockLabel type={type} />}
     </HStack>
   )
 }

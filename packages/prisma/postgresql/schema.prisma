@@ -361,6 +361,23 @@ model ClaimableCustomPlan {
   vatValue     String?
 }
 
+// Component count/allowlist limits for an Azeer plan family (e.g. "GROWTH_PLAN"),
+// as resolved from the Hub. Not tied to Typebot's own Plan enum: Hub resolves which
+// plan family a workspace's business is on, this table stores what that family
+// unlocks in the builder. Seeded by a one-time migration; edited directly (no admin
+// UI yet), same as core.analytics_plan_gate.
+model PlanComponentConfig {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+  planKey           String   @unique
+  // null = unlimited, same convention as Workspace.customSeatsLimit
+  maxComponents     Int?
+  // string[] of Block['type'] tokens; "*" = every block type allowed.
+  // Json (not a native array) so this stays structurally identical on MySQL.
+  allowedBlockTypes Json
+}
+
 model ChatSession {
   id         String   @id @default(cuid())
   createdAt  DateTime @default(now())

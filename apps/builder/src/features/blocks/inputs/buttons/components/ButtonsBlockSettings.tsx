@@ -8,11 +8,9 @@ import { SwitchWithRelatedSettings } from '@/components/SwitchWithRelatedSetting
 import {
   defaultChoiceInputOptions,
   interactiveButtonType,
-  interactiveButtonTypes,
 } from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 import { useTranslate } from '@tolgee/react'
 import { ButtonsBlockInteractiveSettings } from './ButtonsBlockInteractiveSettings'
-import { RadioButtons } from '../../../../../components/inputs/RadioButtons'
 
 type Props = {
   options?: ChoiceInputBlock['options']
@@ -21,28 +19,24 @@ type Props = {
 
 export const ButtonsBlockSettings = ({ options, onOptionsChange }: Props) => {
   const { t } = useTranslate()
-  const updateIsMultiple = (isMultipleChoice: boolean) =>
-    onOptionsChange({ ...options, isMultipleChoice })
-  const updateIsSearchable = (isSearchable: boolean) =>
-    onOptionsChange({ ...options, isSearchable })
-  const updateIsInteractive = (isInteractive: boolean) =>
+  const setOptions = (partialOptions: ChoiceInputBlock['options']) =>
     onOptionsChange({
-      ...options,
-      isInteractive,
-      interactiveButtonType:
-        options?.interactiveButtonType || interactiveButtonType.REPLY,
+      ...partialOptions,
+      isInteractive: true,
+      interactiveButtonType: interactiveButtonType.REPLY,
     })
-  const updateInteractiveButtonType = (
-    interactiveButtonType: interactiveButtonType
-  ) => onOptionsChange({ ...options, interactiveButtonType })
+  const updateIsMultiple = (isMultipleChoice: boolean) =>
+    setOptions({ ...options, isMultipleChoice })
+  const updateIsSearchable = (isSearchable: boolean) =>
+    setOptions({ ...options, isSearchable })
   const updateButtonLabel = (buttonLabel: string) =>
-    onOptionsChange({ ...options, buttonLabel })
+    setOptions({ ...options, buttonLabel })
   const updateSearchInputPlaceholder = (searchInputPlaceholder: string) =>
-    onOptionsChange({ ...options, searchInputPlaceholder })
+    setOptions({ ...options, searchInputPlaceholder })
   const updateSaveVariable = (variable?: Variable) =>
-    onOptionsChange({ ...options, variableId: variable?.id })
+    setOptions({ ...options, variableId: variable?.id })
   const updateDynamicDataVariable = (variable?: Variable) =>
-    onOptionsChange({ ...options, dynamicVariableId: variable?.id })
+    setOptions({ ...options, dynamicVariableId: variable?.id })
 
   return (
     <Stack spacing={4}>
@@ -78,31 +72,10 @@ export const ButtonsBlockSettings = ({ options, onOptionsChange }: Props) => {
           onChange={updateSearchInputPlaceholder}
         />
       </SwitchWithRelatedSettings>
-      <SwitchWithRelatedSettings
-        label={t('blocks.inputs.settings.interactiveButton.label')}
-        initialValue={
-          options?.isInteractive ?? defaultChoiceInputOptions.isInteractive
-        }
-        onCheckChange={updateIsInteractive}
-      >
-        <RadioButtons
-          size="sm"
-          defaultValue={defaultChoiceInputOptions.interactiveButtonType}
-          options={interactiveButtonTypes.map(
-            (type: interactiveButtonType) => ({
-              value: type,
-              label: t(
-                'blocks.inputs.settings.interactive.interactiveType.' + type
-              ),
-            })
-          )}
-          onSelect={updateInteractiveButtonType}
-        />
-        <ButtonsBlockInteractiveSettings
-          options={options}
-          onOptionsChange={onOptionsChange}
-        />
-      </SwitchWithRelatedSettings>
+      <ButtonsBlockInteractiveSettings
+        options={options}
+        onOptionsChange={setOptions}
+      />
       <FormControl>
         <FormLabel>
           {t('blocks.inputs.button.settings.dynamicData.label')}{' '}

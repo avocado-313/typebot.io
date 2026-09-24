@@ -1,4 +1,3 @@
-import { env } from '@typebot.io/env'
 import { ForgedBlockDefinition } from '@typebot.io/forge-repository/types'
 import { BlockWithOptions } from '@typebot.io/schemas'
 import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/constants'
@@ -10,87 +9,85 @@ export const getHelpDocUrl = (
   blockType: BlockWithOptions['type'] | BubbleBlockType,
   blockDef?: ForgedBlockDefinition
 ): string | undefined => {
-  if (!env.NEXT_PUBLIC_KB_BASE_URL) return blockDef?.docsUrl
-  const baseUrl = env.NEXT_PUBLIC_KB_BASE_URL
   switch (blockType) {
     case BubbleBlockType.TEXT:
-      return `${baseUrl}/editor/blocks/bubbles/text`
+      return '/help/blocks/bubbles/text'
     case BubbleBlockType.IMAGE:
-      return `${baseUrl}/editor/blocks/bubbles/image`
+      return '/help/blocks/bubbles/image'
     case BubbleBlockType.VIDEO:
-      return `${baseUrl}/editor/blocks/bubbles/video`
+      return '/help/blocks/bubbles/video'
     case BubbleBlockType.EMBED:
-      return `${baseUrl}/editor/blocks/bubbles/embed`
+      return '/help/blocks/bubbles/embed'
     case BubbleBlockType.AUDIO:
-      return `${baseUrl}/editor/blocks/bubbles/audio`
+      return '/help/blocks/bubbles/audio'
     case LogicBlockType.TYPEBOT_LINK:
-      return `${baseUrl}/editor/blocks/logic/typebot-link`
+      return '/help/blocks/logic/bot-link'
     case LogicBlockType.SET_VARIABLE:
-      return `${baseUrl}/editor/blocks/logic/set-variable`
+      return '/help/blocks/logic/set-variable'
     case LogicBlockType.REDIRECT:
-      return `${baseUrl}/editor/blocks/logic/redirect`
+      return '/help/blocks/logic/redirect'
     case LogicBlockType.SCRIPT:
-      return `${baseUrl}/editor/blocks/logic/script`
+      return '/help/blocks/logic/script'
     case LogicBlockType.WAIT:
-      return `${baseUrl}/editor/blocks/logic/wait`
+      return '/help/blocks/logic/wait'
     case LogicBlockType.CONDITION:
-      return `${baseUrl}/editor/blocks/logic/condition`
+      return '/help/blocks/logic/condition'
     case LogicBlockType.JUMP:
-      return `${baseUrl}/editor/blocks/logic/jump`
-    case LogicBlockType.GLOBAL_JUMP:
-      return `${baseUrl}/editor/blocks/logic/global-jump`
-    case LogicBlockType.ASSIGN_CHAT:
-      return `${baseUrl}/editor/blocks/logic/assign-chat`
-    case LogicBlockType.CLOSE_CHAT:
-      return `${baseUrl}/editor/blocks/logic/close-chat`
+      return '/help/blocks/logic/jump'
     case LogicBlockType.AB_TEST:
-      return `${baseUrl}/editor/blocks/logic/ab-test`
+      return '/help/blocks/logic/ab-test'
     case LogicBlockType.WEBHOOK:
-      return `${baseUrl}/editor/blocks/logic/webhook`
+      return '/help/blocks/logic/webhook'
+    // No article yet for these — no deploy needed to add one later, the
+    // link simply starts rendering once a matching file exists under
+    // apps/builder/content/help.
+    case LogicBlockType.GLOBAL_JUMP:
+    case LogicBlockType.ASSIGN_CHAT:
+    case LogicBlockType.CLOSE_CHAT:
     case LogicBlockType.TRIGGER_WHATSAPP_FLOW:
-      return `${baseUrl}/editor/blocks/logic/trigger-whatsapp-flow`
+      return blockDef?.docsUrl
     case InputBlockType.TEXT:
-      return `${baseUrl}/editor/blocks/inputs/text`
+      return '/help/blocks/inputs/text'
     case InputBlockType.NUMBER:
-      return `${baseUrl}/editor/blocks/inputs/number`
+      return '/help/blocks/inputs/number'
     case InputBlockType.EMAIL:
-      return `${baseUrl}/editor/blocks/inputs/email`
+      return '/help/blocks/inputs/email'
     case InputBlockType.URL:
-      return `${baseUrl}/editor/blocks/inputs/website`
+      return '/help/blocks/inputs/website'
     case InputBlockType.DATE:
-      return `${baseUrl}/editor/blocks/inputs/date`
+      return '/help/blocks/inputs/date'
     case InputBlockType.PHONE:
-      return `${baseUrl}/editor/blocks/inputs/phone-number`
+      return '/help/blocks/inputs/phone-number'
     case InputBlockType.CHOICE:
-      return `${baseUrl}/editor/blocks/inputs/buttons`
+      return '/help/blocks/inputs/buttons'
     case InputBlockType.PICTURE_CHOICE:
-      return `${baseUrl}/editor/blocks/inputs/picture-choice`
+      return '/help/blocks/inputs/picture-choice'
     case InputBlockType.PAYMENT:
-      return `${baseUrl}/editor/blocks/inputs/payment`
+      return '/help/blocks/inputs/payment'
     case InputBlockType.RATING:
-      return `${baseUrl}/editor/blocks/inputs/rating`
+      return '/help/blocks/inputs/rating'
     case InputBlockType.FILE:
-      return `${baseUrl}/editor/blocks/inputs/file-upload`
+      return '/help/blocks/inputs/file-upload'
     case IntegrationBlockType.GOOGLE_SHEETS:
-      return `${baseUrl}/editor/blocks/integrations/google-sheets`
+      return '/help/blocks/integrations/google-sheets'
     case IntegrationBlockType.GOOGLE_ANALYTICS:
-      return `${baseUrl}/editor/blocks/integrations/google-analytics`
+      return '/help/blocks/integrations/google-analytics'
     case IntegrationBlockType.WEBHOOK:
-      return `${baseUrl}/editor/blocks/integrations/webhook`
+      return '/help/blocks/integrations/webhook'
     case IntegrationBlockType.EMAIL:
-      return `${baseUrl}/editor/blocks/integrations/send-email`
+      return '/help/blocks/integrations/send-email'
     case IntegrationBlockType.ZAPIER:
-      return `${baseUrl}/editor/blocks/integrations/zapier`
+      return '/help/blocks/integrations/zapier'
     case IntegrationBlockType.MAKE_COM:
-      return `${baseUrl}/editor/blocks/integrations/make-com`
+      return '/help/blocks/integrations/make-com'
     case IntegrationBlockType.PABBLY_CONNECT:
-      return `${baseUrl}/editor/blocks/integrations/pabbly-connect`
+      return '/help/blocks/integrations/pabbly-connect'
     case IntegrationBlockType.CHATWOOT:
-      return `${baseUrl}/editor/blocks/integrations/chatwoot`
+      return '/help/blocks/integrations/chatwoot'
     case IntegrationBlockType.PIXEL:
-      return `${baseUrl}/editor/blocks/integrations/meta-pixel`
+      return '/help/blocks/integrations/meta-pixel'
     case IntegrationBlockType.OPEN_AI:
-      return `${baseUrl}/editor/blocks/integrations/openai`
+      return '/help/blocks/integrations/openai'
     default:
       return blockDef?.docsUrl
   }
