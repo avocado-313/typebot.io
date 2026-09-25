@@ -1,7 +1,21 @@
 import { useBlockDnd } from '@/features/graph/providers/GraphDndProvider'
 import { Tooltip, Flex, HStack, useColorModeValue } from '@chakra-ui/react'
 import { BlockV6 } from '@typebot.io/schemas'
+import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
 import { ReactNode, useState, useEffect } from 'react'
+import { inputBlockCardBgColor } from '../constants'
+
+export const isInputBlockType = (type: BlockV6['type']) =>
+  (Object.values(InputBlockType) as string[]).includes(type)
+
+export const useBlockCardBgColor = (type: BlockV6['type']) => {
+  const defaultBgColor = useColorModeValue('gray.50', 'gray.850')
+  const inputBgColor = useColorModeValue(
+    inputBlockCardBgColor.light,
+    inputBlockCardBgColor.dark
+  )
+  return isInputBlockType(type) ? inputBgColor : defaultBgColor
+}
 
 type Props = {
   type: BlockV6['type']
@@ -33,7 +47,7 @@ export const BlockCardLayout = ({
   }
 
   const borderColor = useColorModeValue('gray.200', 'gray.800')
-  const bgColor = useColorModeValue('gray.50', 'gray.850')
+  const bgColor = useBlockCardBgColor(type)
   const hoverStyle = useColorModeValue(
     { shadow: 'md' },
     { bgColor: 'gray.800' }
