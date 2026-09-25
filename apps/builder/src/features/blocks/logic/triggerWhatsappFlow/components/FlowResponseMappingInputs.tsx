@@ -6,6 +6,7 @@ import { useTranslate } from '@tolgee/react'
 import { Variable } from '@typebot.io/schemas'
 import { TriggerWhatsappFlowResponseMapping } from '@typebot.io/schemas/features/blocks/logic/triggerWhatsappFlow/schema'
 import React from 'react'
+import { formatFlowFieldName } from '../helpers/formatFlowFieldName'
 
 export type FlowOutputField = {
   name: string
@@ -25,13 +26,16 @@ export const FlowResponseMappingInputs = ({
   const { t } = useTranslate()
 
   const items = fields.map((field) => ({
-    label: field.screen ? `${field.name} (${field.screen})` : field.name,
+    label: formatFlowFieldName(field.name),
     value: field.name,
   }))
   // A field saved before the flow was edited must stay visible so the mapping
   // can be seen and changed, rather than silently looking empty.
   if (item.fieldName && !fields.some((field) => field.name === item.fieldName))
-    items.push({ label: item.fieldName, value: item.fieldName })
+    items.push({
+      label: formatFlowFieldName(item.fieldName),
+      value: item.fieldName,
+    })
 
   const updateFieldName = (fieldName: string | undefined) =>
     onItemChange({ ...item, fieldName })

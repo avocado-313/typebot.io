@@ -28,6 +28,7 @@ import {
   whatsappFlowCtaMaxLength,
 } from '@typebot.io/schemas/features/blocks/logic/triggerWhatsappFlow/constants'
 import React, { useMemo } from 'react'
+import { formatFlowFieldName } from '../helpers/formatFlowFieldName'
 import { TriggerWhatsappFlowIcon } from './TriggerWhatsappFlowIcon'
 import { FlowResponseMappingInputs } from './FlowResponseMappingInputs'
 
@@ -216,7 +217,7 @@ export const TriggerWhatsappFlowSettings = ({
             >
               <Stack direction="row" align="center" spacing="2">
                 <Text fontWeight="medium" fontSize="sm">
-                  {field.name}
+                  {formatFlowFieldName(field.name)}
                 </Text>
                 <Tag size="sm">{field.type}</Tag>
               </Stack>
