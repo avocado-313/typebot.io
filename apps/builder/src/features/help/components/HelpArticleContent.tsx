@@ -66,9 +66,10 @@ const customTagComponents: Record<string, (props: TagProps) => JSX.Element> = {
     </Box>
   ),
   tabs: ({ children }) => {
-    const items = React.Children.toArray(children) as React.ReactElement<{
-      title?: string
-    }>[]
+    // Whitespace between <Tab> tags comes through as string children.
+    const items = React.Children.toArray(children).filter(
+      React.isValidElement
+    ) as React.ReactElement<{ title?: string }>[]
     return (
       <Tabs my={4} isLazy>
         <TabList>
