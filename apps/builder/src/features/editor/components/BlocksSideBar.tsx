@@ -241,7 +241,7 @@ export const BlocksSideBar = () => {
               type={draggedBlockType ?? InputBlockType.CHOICE}
               icon={
                 isDraggingNewListBlock ? (
-                  <ListIcon color="orange.500" />
+                  <ListIcon color="purple.500" />
                 ) : undefined
               }
               label={

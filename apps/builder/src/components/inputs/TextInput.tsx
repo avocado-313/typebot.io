@@ -170,12 +170,14 @@ export const TextInput = forwardRef(function TextInput(
       ) : (
         Input
       )}
-      {maxLength !== undefined && (
+      {maxLength !== undefined ? (
         <FormHelperText mt="0">
+          {helperText && <>{helperText} · </>}
           {localValue.length.toLocaleString()} / {maxLength.toLocaleString()}
         </FormHelperText>
+      ) : (
+        helperText && <FormHelperText mt="0">{helperText}</FormHelperText>
       )}
-      {helperText && <FormHelperText mt="0">{helperText}</FormHelperText>}
     </FormControl>
   )
 })

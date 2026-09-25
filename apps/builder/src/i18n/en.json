@@ -236,8 +236,8 @@
   "blocks.inputs.settings.interactive.headerType.image": "Image",
   "blocks.inputs.settings.interactive.headerType.video": "Video",
   "blocks.inputs.settings.interactive.headerType.document": "Document",
-  "blocks.inputs.settings.interactive.menuTitle.label": "Menu title",
-  "blocks.inputs.settings.interactive.menuTitle.placeholder": "Enter menu title",
+  "blocks.inputs.settings.interactive.menuTitle.label": "Button",
+  "blocks.inputs.settings.interactive.menuTitle.placeholder": "Enter button text",
   "blocks.inputs.settings.interactive.menuTitle.helperText": "(Max 24 chars.)",
   "blocks.inputs.settings.interactive.header.label": "Header",
   "blocks.inputs.settings.interactive.header.placeholder": "Enter header",
@@ -248,7 +248,7 @@
   "blocks.inputs.settings.interactive.body.helperText": "(Max 1024 chars.)",
   "blocks.inputs.settings.interactive.footer.label": "Footer",
   "blocks.inputs.settings.interactive.footer.placeholder": "Enter footer",
-  "blocks.inputs.settings.interactive.footer.helperText": "(Optional. Max 60 chars.)",
+  "blocks.inputs.settings.interactive.footer.helperText": "Optional",
   "blocks.inputs.settings.interactive.error.required": "Value is require",
   "blocks.inputs.settings.interactive.error.invalid": "Value is invalid",
   "blocks.inputs.settings.max.label": "Max:",
@@ -600,5 +600,12 @@
   "workspace.settings.modal.menu.settings.label": "Settings",
   "workspace.settings.modal.menu.version.label": "Version: {version}",
   "workspace.settings.modal.menu.workspace.label": "Workspace",
-  "workspace.settings.name.label": "Name:"
+  "workspace.settings.name.label": "Name:",
+  "blocks.inputs.button.failover.label": "Failover",
+  "blocks.inputs.settings.interactive.title.reply": "Button message",
+  "blocks.inputs.settings.interactive.title.list": "List message",
+  "blocks.inputs.settings.interactive.limits.reply": "Up to {maxItems} buttons · button labels max {maxLength} characters · Failover is always last and does not count as a button",
+  "blocks.inputs.settings.interactive.limits.list": "Up to {maxItems} rows · row titles max {maxLength} characters · Failover is always last and does not count as a row",
+  "blocks.inputs.settings.interactive.dynamicData.label": "Dynamic data",
+  "blocks.inputs.settings.interactive.saveAnswer.label": "Save the answer in a variable"
 }

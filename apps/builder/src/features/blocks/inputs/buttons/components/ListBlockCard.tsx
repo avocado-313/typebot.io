@@ -15,7 +15,7 @@ type Props = {
 export const ListBlockCard = ({ onMouseDown }: Props) => {
   const { t } = useTranslate()
   const { draggedBlock } = useBlockDnd()
-  const orange = useColorModeValue('orange.500', 'orange.300')
+  const purple = useColorModeValue('purple.500', 'purple.300')
 
   const isPressed =
     draggedBlock?.type === InputBlockType.CHOICE &&
@@ -30,7 +30,7 @@ export const ListBlockCard = ({ onMouseDown }: Props) => {
       tooltip={t('blocks.inputs.list.blockCard.tooltip')}
       onMouseDown={onMouseDown}
     >
-      <ListIcon color={orange} />
+      <ListIcon color={purple} />
       <Text fontSize="sm">{t('editor.sidebarBlock.list.label')}</Text>
     </BlockCardLayout>
   )

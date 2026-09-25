@@ -77,7 +77,7 @@ export const BlockIcon = ({ type, ...props }: BlockIconProps): JSX.Element => {
     case InputBlockType.PHONE:
       return <PhoneInputIcon color={orange} {...props} />
     case InputBlockType.CHOICE:
-      return <ButtonsInputIcon color={orange} {...props} />
+      return <ButtonsInputIcon color={purple} {...props} />
     case InputBlockType.PICTURE_CHOICE:
       return <PictureChoiceIcon color={orange} {...props} />
     case InputBlockType.PAYMENT:
