@@ -6,9 +6,11 @@ import { byId } from '@typebot.io/lib'
 /**
  * Fires a WhatsApp Flow at the current contact and lets the conversation
  * continue normally — the Flow is filled out asynchronously in WhatsApp's own
- * native UI; its completion comes back through the platform's own flow-
- * response ledger, entirely outside this typebot session. Unlike Assign Chat,
- * this is not a handoff: the bot keeps talking.
+ * native UI. Unlike Assign Chat, this is not a handoff: without response
+ * mappings the bot keeps talking and the completion only lands in the
+ * platform's own flow-response ledger. With mappings, the session parks on
+ * this block until the Hub forwards the `nfm_reply` (or any other message —
+ * see `resumeTriggerWhatsappFlow`).
  *
  * Every mapped variable is resolved to its CURRENT literal value here, before
  * the action ever leaves the engine — the receiving side (the Hub) is handed
@@ -32,11 +34,16 @@ export const executeTriggerWhatsappFlow = (
     return acc
   }, {})
 
+  const expectsDedicatedReply = (
+    block.options.responseVariableMapping ?? []
+  ).some((mapping) => mapping.fieldName && mapping.variableId)
+
   return {
     outgoingEdgeId: block.outgoingEdgeId,
     clientSideActions: [
       {
         type: 'triggerWhatsappFlow',
+        expectsDedicatedReply,
         triggerWhatsappFlow: {
           flowId: block.options.flowId,
           body: block.options.body

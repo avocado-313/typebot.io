@@ -34,6 +34,8 @@ import { MediaBubblePopoverContent } from './MediaBubblePopoverContent'
 import { ContextMenu } from '@/components/ContextMenu'
 import { TextBubbleEditor } from '@/features/blocks/bubbles/textBubble/components/TextBubbleEditor'
 import { BlockIcon } from '@/features/editor/components/BlockIcon'
+import { ListIcon } from '@/components/icons'
+import { interactiveButtonType } from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 import { useTypebot } from '@/features/editor/providers/TypebotProvider'
 import {
   NodePosition,
@@ -48,6 +50,7 @@ import { TargetEndpoint } from '../../endpoints/TargetEndpoint'
 import { SettingsModal } from './SettingsModal'
 import { TElement } from '@udecode/plate-common'
 import { LogicBlockType } from '@typebot.io/schemas/features/blocks/logic/constants'
+import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
 import { useGroupsStore } from '@/features/graph/hooks/useGroupsStore'
 import { TurnableIntoParam } from '@typebot.io/forge'
 import { ZodError, ZodObject } from 'zod'
@@ -69,6 +72,7 @@ export const BlockNode = ({
   const bg = useColorModeValue('gray.50', 'gray.850')
   const previewingBorderColor = useColorModeValue('orange.400', 'orange.300')
   const borderColor = useColorModeValue('gray.200', 'gray.800')
+  const listIconColor = useColorModeValue('purple.500', 'purple.300')
   const { pathname, query } = useRouter()
   const {
     setConnectingIds,
@@ -286,7 +290,13 @@ export const BlockNode = ({
                 w="full"
                 transition="border-color 0.2s"
               >
-                <BlockIcon type={block.type} mt=".25rem" />
+                {block.type === InputBlockType.CHOICE &&
+                block.options?.interactiveButtonType ===
+                  interactiveButtonType.LIST ? (
+                  <ListIcon color={listIconColor} mt=".25rem" />
+                ) : (
+                  <BlockIcon type={block.type} mt=".25rem" />
+                )}
                 {typebot?.groups.at(indices.groupIndex)?.id && (
                   <BlockNodeContent
                     block={block}

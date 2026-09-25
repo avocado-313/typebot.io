@@ -17,12 +17,27 @@ export type TriggerWhatsappFlowVariableMapping = z.infer<
   typeof triggerWhatsappFlowVariableMappingSchema
 >
 
+// One entry per key of the flow's completion payload (`response_json` of the
+// `nfm_reply`). For a multi-screen flow those keys are whatever the terminal
+// screen's `complete` action forwards, not every form field along the way.
+export const triggerWhatsappFlowResponseMappingSchema = z.object({
+  id: z.string(),
+  fieldName: z.string().optional(),
+  variableId: z.string().optional(),
+})
+export type TriggerWhatsappFlowResponseMapping = z.infer<
+  typeof triggerWhatsappFlowResponseMappingSchema
+>
+
 export const triggerWhatsappFlowOptionsSchema = z.object({
   flowId: z.string().optional(),
   flowName: z.string().optional(),
   body: z.string().optional(),
   cta: z.string().optional(),
   variableMapping: z.array(triggerWhatsappFlowVariableMappingSchema).optional(),
+  responseVariableMapping: z
+    .array(triggerWhatsappFlowResponseMappingSchema)
+    .optional(),
 })
 
 export const triggerWhatsappFlowBlockSchema = blockBaseSchema.merge(

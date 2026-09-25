@@ -77,7 +77,7 @@ export const BlockIcon = ({ type, ...props }: BlockIconProps): JSX.Element => {
     case InputBlockType.PHONE:
       return <PhoneInputIcon color={orange} {...props} />
     case InputBlockType.CHOICE:
-      return <ButtonsInputIcon color={orange} {...props} />
+      return <ButtonsInputIcon color={purple} {...props} />
     case InputBlockType.PICTURE_CHOICE:
       return <PictureChoiceIcon color={orange} {...props} />
     case InputBlockType.PAYMENT:
@@ -111,7 +111,7 @@ export const BlockIcon = ({ type, ...props }: BlockIconProps): JSX.Element => {
     case LogicBlockType.WEBHOOK:
       return <WebhookIcon color={purple} {...props} />
     case LogicBlockType.TRIGGER_WHATSAPP_FLOW:
-      return <TriggerWhatsappFlowIcon {...props} />
+      return <TriggerWhatsappFlowIcon color={purple} {...props} />
     case IntegrationBlockType.GOOGLE_SHEETS:
       return <GoogleSheetsLogo {...props} />
     case IntegrationBlockType.GOOGLE_ANALYTICS:
