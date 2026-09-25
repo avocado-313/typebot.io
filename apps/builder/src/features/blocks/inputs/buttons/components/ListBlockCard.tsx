@@ -7,7 +7,6 @@ import { useBlockDnd } from '@/features/graph/providers/GraphDndProvider'
 import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
 import { interactiveButtonType } from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 import { BlockV6 } from '@typebot.io/schemas'
-import { inputBlockCardLabelColor } from '@/features/editor/constants'
 
 type Props = {
   onMouseDown: (e: React.MouseEvent, type: BlockV6['type']) => void
@@ -32,9 +31,7 @@ export const ListBlockCard = ({ onMouseDown }: Props) => {
       onMouseDown={onMouseDown}
     >
       <ListIcon color={purple} />
-      <Text fontSize="sm" color={inputBlockCardLabelColor}>
-        {t('editor.sidebarBlock.list.label')}
-      </Text>
+      <Text fontSize="sm">{t('editor.sidebarBlock.list.label')}</Text>
     </BlockCardLayout>
   )
 }

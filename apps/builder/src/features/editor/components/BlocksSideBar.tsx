@@ -16,7 +16,7 @@ import React, { useState } from 'react'
 import { BlockCard } from './BlockCard'
 import { LockedIcon, UnlockedIcon, ListIcon } from '@/components/icons'
 import { BlockCardOverlay } from './BlockCardOverlay'
-import { headerHeight, inputBlockCardLabelColor } from '../constants'
+import { headerHeight } from '../constants'
 import { useTranslate } from '@tolgee/react'
 import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/constants'
 import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
@@ -246,7 +246,7 @@ export const BlocksSideBar = () => {
               }
               label={
                 isDraggingNewListBlock ? (
-                  <Text fontSize="sm" color={inputBlockCardLabelColor}>
+                  <Text fontSize="sm">
                     {t('editor.sidebarBlock.list.label')}
                   </Text>
                 ) : undefined
