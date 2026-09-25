@@ -2,11 +2,18 @@ import { StackProps, HStack, useColorModeValue } from '@chakra-ui/react'
 import { BlockIcon } from './BlockIcon'
 import { BlockLabel } from './BlockLabel'
 import { BlockV6 } from '@typebot.io/schemas'
+import { useBlockCardBgColor } from './BlockCardLayout'
 
 export const BlockCardOverlay = ({
   type,
+  icon,
+  label,
   ...props
-}: StackProps & { type: BlockV6['type'] }) => {
+}: StackProps & {
+  type: BlockV6['type']
+  icon?: JSX.Element
+  label?: JSX.Element
+}) => {
   return (
     <HStack
       borderWidth="1px"
@@ -18,13 +25,13 @@ export const BlockCardOverlay = ({
       px="4"
       py="2"
       borderColor={useColorModeValue('gray.200', 'gray.800')}
-      bgColor={useColorModeValue('gray.50', 'gray.850')}
+      bgColor={useBlockCardBgColor(type)}
       shadow="xl"
       zIndex={2}
       {...props}
     >
-      <BlockIcon type={type} />
-      <BlockLabel type={type} />
+      {icon ?? <BlockIcon type={type} />}
+      {label ?? <BlockLabel type={type} />}
     </HStack>
   )
 }

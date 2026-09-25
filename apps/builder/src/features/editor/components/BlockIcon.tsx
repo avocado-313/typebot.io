@@ -43,6 +43,8 @@ import { ForgedBlockIcon } from '@/features/forge/ForgedBlockIcon'
 import { SendEmailIcon } from '@/features/blocks/integrations/sendEmail/components/SendEmailIcon'
 import { FlagIcon, ThunderIcon } from '@/components/icons'
 import { GlobalJumpIcon } from '../../blocks/logic/globalJump/components/GlobalJumpIcon'
+import { WebhookIcon } from '@/features/blocks/logic/webhook/components/WebhookIcon'
+import { TriggerWhatsappFlowIcon } from '@/features/blocks/logic/triggerWhatsappFlow/components/TriggerWhatsappFlowIcon'
 
 type BlockIconProps = { type: Block['type'] } & IconProps
 
@@ -75,7 +77,7 @@ export const BlockIcon = ({ type, ...props }: BlockIconProps): JSX.Element => {
     case InputBlockType.PHONE:
       return <PhoneInputIcon color={orange} {...props} />
     case InputBlockType.CHOICE:
-      return <ButtonsInputIcon color={orange} {...props} />
+      return <ButtonsInputIcon color={purple} {...props} />
     case InputBlockType.PICTURE_CHOICE:
       return <PictureChoiceIcon color={orange} {...props} />
     case InputBlockType.PAYMENT:
@@ -106,6 +108,10 @@ export const BlockIcon = ({ type, ...props }: BlockIconProps): JSX.Element => {
       return <AbTestIcon color={purple} {...props} />
     case LogicBlockType.GLOBAL_JUMP:
       return <GlobalJumpIcon color={purple} {...props} />
+    case LogicBlockType.WEBHOOK:
+      return <WebhookIcon color={purple} {...props} />
+    case LogicBlockType.TRIGGER_WHATSAPP_FLOW:
+      return <TriggerWhatsappFlowIcon color={purple} {...props} />
     case IntegrationBlockType.GOOGLE_SHEETS:
       return <GoogleSheetsLogo {...props} />
     case IntegrationBlockType.GOOGLE_ANALYTICS:

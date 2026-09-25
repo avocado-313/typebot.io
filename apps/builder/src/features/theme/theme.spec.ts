@@ -60,6 +60,7 @@ test.describe.parallel('Theme page', () => {
 
       await page.click('text="Image"')
       await page.getByRole('button', { name: 'Select an image' }).click()
+      await page.getByRole('button', { name: 'Link' }).click()
       await page
         .getByPlaceholder('Paste the image link...')
         .fill(backgroundImageUrl)

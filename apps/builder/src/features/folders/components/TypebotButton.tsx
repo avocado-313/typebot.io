@@ -151,8 +151,8 @@ const TypebotButton = ({
     >
       {typebot.publishedTypebotId && (
         <Tag
-          colorScheme="orange"
-          variant="solid"
+          colorScheme="green"
+          variant="subtle"
           rounded="full"
           pos="absolute"
           top="27px"

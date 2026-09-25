@@ -8,9 +8,8 @@ export interface GroupLimitResponse {
 export const isWorkspaceExcludedFromGroupsLimit = (
   workspaceId: string
 ): boolean =>
-  env.NEXT_PUBLIC_GROUPS_LIMIT_EXCLUDED_WORKSPACE_IDS?.includes(
-    workspaceId
-  ) ?? false
+  env.NEXT_PUBLIC_GROUPS_LIMIT_EXCLUDED_WORKSPACE_IDS?.includes(workspaceId) ??
+  false
 
 export const checkGroupLimits = async (
   workspaceId: string

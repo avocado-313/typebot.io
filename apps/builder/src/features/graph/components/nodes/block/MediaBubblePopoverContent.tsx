@@ -8,6 +8,10 @@ import {
   PopoverContent,
   PopoverArrow,
   PopoverBody,
+  Flex,
+  HStack,
+  SlideFade,
+  useColorModeValue,
 } from '@chakra-ui/react'
 import {
   BubbleBlock,
@@ -15,7 +19,9 @@ import {
   TextBubbleBlock,
 } from '@typebot.io/schemas'
 import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/constants'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { getHelpDocUrl } from '@/features/graph/helpers/getHelpDocUrl'
+import { HelpDocLink } from './HelpDocLink'
 
 type Props = {
   uploadFileProps: FilePathUploadProps
@@ -25,16 +31,52 @@ type Props = {
 
 export const MediaBubblePopoverContent = (props: Props) => {
   const ref = useRef<HTMLDivElement | null>(null)
+  const [isHovering, setIsHovering] = useState(false)
   const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation()
+  const helpDocUrl = getHelpDocUrl(props.block.type)
+  const helpBarBgColor = useColorModeValue('white', 'gray.800')
 
   return (
     <Portal>
       <PopoverContent
         onMouseDown={handleMouseDown}
-        w={props.block.type === BubbleBlockType.IMAGE ? '500px' : '400px'}
+        pos="relative"
+        w={
+          props.block.type === BubbleBlockType.IMAGE ||
+          props.block.type === BubbleBlockType.EMBED
+            ? '500px'
+            : '400px'
+        }
       >
         <PopoverArrow />
-        <PopoverBody ref={ref} shadow="lg">
+        <PopoverBody
+          ref={ref}
+          shadow="lg"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          {helpDocUrl && (
+            <Flex
+              w="full"
+              pos="absolute"
+              top="-56px"
+              height="64px"
+              right={0}
+              justifyContent="flex-end"
+              align="center"
+            >
+              <SlideFade in={isHovering} unmountOnExit>
+                <HStack
+                  rounded="md"
+                  borderWidth="1px"
+                  bgColor={helpBarBgColor}
+                  shadow="md"
+                >
+                  <HelpDocLink helpDocUrl={helpDocUrl} />
+                </HStack>
+              </SlideFade>
+            </Flex>
+          )}
           <MediaBubbleContent {...props} />
         </PopoverBody>
       </PopoverContent>
@@ -60,6 +102,8 @@ export const MediaBubbleContent = ({
     case BubbleBlockType.VIDEO: {
       return (
         <VideoUploadContent
+          blockId={block.id}
+          uploadFileProps={uploadFileProps}
           content={block.content}
           onSubmit={onContentChange}
         />
@@ -68,6 +112,8 @@ export const MediaBubbleContent = ({
     case BubbleBlockType.EMBED: {
       return (
         <EmbedUploadContent
+          blockId={block.id}
+          uploadFileProps={uploadFileProps}
           content={block.content}
           onSubmit={onContentChange}
         />
