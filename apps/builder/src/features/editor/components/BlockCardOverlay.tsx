@@ -2,6 +2,8 @@ import { StackProps, HStack, useColorModeValue } from '@chakra-ui/react'
 import { BlockIcon } from './BlockIcon'
 import { BlockLabel } from './BlockLabel'
 import { BlockV6 } from '@typebot.io/schemas'
+import { isInputBlockType } from './BlockCard'
+import { inputBlockCardLabelColor } from '../constants'
 
 export const BlockCardOverlay = ({
   type,
@@ -30,7 +32,12 @@ export const BlockCardOverlay = ({
       {...props}
     >
       {icon ?? <BlockIcon type={type} />}
-      {label ?? <BlockLabel type={type} />}
+      {label ?? (
+        <BlockLabel
+          type={type}
+          color={isInputBlockType(type) ? inputBlockCardLabelColor : undefined}
+        />
+      )}
     </HStack>
   )
 }
