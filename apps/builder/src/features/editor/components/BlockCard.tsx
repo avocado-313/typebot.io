@@ -14,10 +14,6 @@ import { ForgedBlockCard } from '@/features/forge/ForgedBlockCard'
 import { isForgedBlockType } from '@typebot.io/schemas/features/blocks/forged/helpers'
 import { ForgedBlock } from '@typebot.io/forge-repository/types'
 import { useComponentLockState } from '../hooks/useComponentLockState'
-import { inputBlockCardLabelColor } from '../constants'
-
-export const isInputBlockType = (type: BlockV6['type']) =>
-  (Object.values(InputBlockType) as string[]).includes(type)
 
 type Props = {
   type: BlockV6['type']
@@ -49,12 +45,7 @@ export const BlockCard = (
     >
       <BlockIcon type={props.type} />
       <HStack flex="1" justifyContent="space-between">
-        <BlockLabel
-          type={props.type}
-          color={
-            isInputBlockType(props.type) ? inputBlockCardLabelColor : undefined
-          }
-        />
+        <BlockLabel type={props.type} />
         {isDisabled && <LockedIcon flexShrink={0} color="gray.400" />}
       </HStack>
     </BlockCardLayout>
