@@ -111,7 +111,7 @@ export const BlockIcon = ({ type, ...props }: BlockIconProps): JSX.Element => {
     case LogicBlockType.WEBHOOK:
       return <WebhookIcon color={purple} {...props} />
     case LogicBlockType.TRIGGER_WHATSAPP_FLOW:
-      return <TriggerWhatsappFlowIcon {...props} />
+      return <TriggerWhatsappFlowIcon color={purple} {...props} />
     case IntegrationBlockType.GOOGLE_SHEETS:
       return <GoogleSheetsLogo {...props} />
     case IntegrationBlockType.GOOGLE_ANALYTICS:

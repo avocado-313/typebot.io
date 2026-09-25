@@ -37,6 +37,7 @@ export type TextInputProps = {
   isDisabled?: boolean
   direction?: 'row' | 'column'
   width?: 'full'
+  maxLength?: number
 } & Pick<
   InputProps,
   | 'autoComplete'
@@ -72,6 +73,7 @@ export const TextInput = forwardRef(function TextInput(
     direction = 'column',
     width,
     flexShrink,
+    maxLength,
   }: TextInputProps,
   ref
 ) {
@@ -139,6 +141,7 @@ export const TextInput = forwardRef(function TextInput(
       onChange={(e) => changeValue(e.target.value)}
       size={size}
       maxWidth={maxWidth}
+      maxLength={maxLength}
     />
   )
 
@@ -166,6 +169,11 @@ export const TextInput = forwardRef(function TextInput(
         </HStack>
       ) : (
         Input
+      )}
+      {maxLength !== undefined && (
+        <FormHelperText mt="0">
+          {localValue.length.toLocaleString()} / {maxLength.toLocaleString()}
+        </FormHelperText>
       )}
       {helperText && <FormHelperText mt="0">{helperText}</FormHelperText>}
     </FormControl>
