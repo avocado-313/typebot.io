@@ -112,6 +112,7 @@ export const deprecatedBlockTypes: Block['type'][] = [
   InputBlockType.PAYMENT,
   LogicBlockType.AB_TEST,
   LogicBlockType.REDIRECT,
+  LogicBlockType.WEBHOOK,
   IntegrationBlockType.ZAPIER,
 ]
 
