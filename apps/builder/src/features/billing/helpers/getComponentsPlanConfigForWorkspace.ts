@@ -1,20 +1,14 @@
 import prisma from '@typebot.io/lib/prisma'
-import { getWorkspacePlanKey } from '@typebot.io/lib'
+import { checkGroupLimits, getWorkspacePlanKey } from '@typebot.io/lib'
 import { z } from 'zod'
 import { ComponentsPlanConfig } from '@/features/typebot/helpers/componentsLimit'
 
 // A plan with no PlanComponentConfig row (unmapped plan key, or the Hub couldn't be
-// reached) falls back to unrestricted rather than throwing — used both by the
+// reached) falls back to unrestricted block types rather than throwing — used both by the
 // getComponentsPlanConfig query (feeds the always-visible live counter) and by
 // updateTypebot's save-time check. Breaking a user's ability to see/build is worse
 // than a temporary under-restriction.
-const UNRESTRICTED: Pick<
-  ComponentsPlanConfig,
-  'maxComponents' | 'allowedBlockTypes'
-> = {
-  maxComponents: null,
-  allowedBlockTypes: ['*'],
-}
+const UNRESTRICTED_BLOCK_TYPES = ['*']
 
 const parseAllowedBlockTypes = (value: unknown, planKey: string): string[] => {
   const parsed = z.array(z.string()).safeParse(value)
@@ -22,15 +16,38 @@ const parseAllowedBlockTypes = (value: unknown, planKey: string): string[] => {
     console.warn(
       `[getComponentsPlanConfigForWorkspace] malformed allowedBlockTypes for plan "${planKey}", falling back to unrestricted`
     )
-    return UNRESTRICTED.allowedBlockTypes
+    return UNRESTRICTED_BLOCK_TYPES
   }
   return parsed.data
+}
+
+// The component cap is the Hub's per-business typebot limit (/item/:ws/typbot —
+// plan default or billing override), not PlanComponentConfig.maxComponents, so
+// billing stays the single source of truth. Same fail-open contract: a Hub error
+// or an excluded workspace means no cap.
+const getHubMaxComponents = async (
+  workspaceId: string
+): Promise<number | null> => {
+  const { maxGroups, error } = await checkGroupLimits(workspaceId)
+  if (error || !Number.isFinite(maxGroups) || maxGroups <= 0) {
+    if (error)
+      console.warn(
+        `[getComponentsPlanConfigForWorkspace] could not fetch Hub typebot limit for workspace ${workspaceId} (${error}), falling back to unrestricted`
+      )
+    return null
+  }
+  return maxGroups
 }
 
 export const getComponentsPlanConfigForWorkspace = async (
   workspaceId: string
 ): Promise<ComponentsPlanConfig> => {
-  const allPlanRows = await prisma.planComponentConfig.findMany()
+  const [allPlanRows, { planKey: currentPlanKey }, maxComponents] =
+    await Promise.all([
+      prisma.planComponentConfig.findMany(),
+      getWorkspacePlanKey(workspaceId),
+      getHubMaxComponents(workspaceId),
+    ])
   const allPlans = allPlanRows.map((row) => ({
     planKey: row.planKey,
     maxComponents: row.maxComponents,
@@ -40,12 +57,16 @@ export const getComponentsPlanConfigForWorkspace = async (
     ),
   }))
 
-  const { planKey: currentPlanKey } = await getWorkspacePlanKey(workspaceId)
   if (!currentPlanKey) {
     console.warn(
-      `[getComponentsPlanConfigForWorkspace] could not resolve plan key for workspace ${workspaceId}, falling back to unrestricted`
+      `[getComponentsPlanConfigForWorkspace] could not resolve plan key for workspace ${workspaceId}, block types unrestricted`
     )
-    return { currentPlanKey: null, ...UNRESTRICTED, allPlans }
+    return {
+      currentPlanKey: null,
+      maxComponents,
+      allowedBlockTypes: UNRESTRICTED_BLOCK_TYPES,
+      allPlans,
+    }
   }
 
   const matchingConfig = allPlans.find(
@@ -53,14 +74,19 @@ export const getComponentsPlanConfigForWorkspace = async (
   )
   if (!matchingConfig) {
     console.warn(
-      `[getComponentsPlanConfigForWorkspace] no PlanComponentConfig row for plan key "${currentPlanKey}", falling back to unrestricted`
+      `[getComponentsPlanConfigForWorkspace] no PlanComponentConfig row for plan key "${currentPlanKey}", block types unrestricted`
     )
-    return { currentPlanKey, ...UNRESTRICTED, allPlans }
+    return {
+      currentPlanKey,
+      maxComponents,
+      allowedBlockTypes: UNRESTRICTED_BLOCK_TYPES,
+      allPlans,
+    }
   }
 
   return {
     currentPlanKey,
-    maxComponents: matchingConfig.maxComponents,
+    maxComponents,
     allowedBlockTypes: matchingConfig.allowedBlockTypes,
     allPlans,
   }
