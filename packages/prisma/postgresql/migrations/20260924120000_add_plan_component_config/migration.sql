@@ -1,7 +1,11 @@
 -- CreateTable
--- Component count/allowlist limits for an Azeer plan family, resolved from the Hub
--- (see packages/lib/getWorkspacePlanKey.ts). Written IF NOT EXISTS / ON CONFLICT DO
--- NOTHING, same idempotent style as core.analytics_plan_gate, so it's safe to re-run.
+-- Per-plan-family block-type allowlist for an Azeer plan (see
+-- packages/lib/getWorkspacePlanKey.ts to resolve a workspace's planKey). The
+-- component COUNT limit is not read from here — it's resolved live from the Hub's
+-- /limit endpoint (see packages/lib/checkComponentsLimit.ts); the maxComponents
+-- column below is kept for reference/allPlans display only. Written IF NOT EXISTS /
+-- ON CONFLICT DO NOTHING, same idempotent style as core.analytics_plan_gate, so
+-- it's safe to re-run.
 CREATE TABLE IF NOT EXISTS "PlanComponentConfig" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -21,11 +25,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS "PlanComponentConfig_planKey_key" ON "PlanComp
 -- plan as the source of truth, package variants already collapse onto these via
 -- core's PlanFamily(). Package `pro_plan_pkg3` etc. resolve to these same keys.
 --
--- PLACEHOLDER VALUES — maxComponents, allowedBlockTypes and the entry/mid/top
--- tiering below are illustrative only (entry tier's 15 mirrors the design mockup's
--- "0/15 components used"). These need real numbers from product before this ships;
--- do not treat this seed as final. Adjust with plain UPDATE statements against
--- "PlanComponentConfig" by "planKey" — no new migration needed for value tweaks.
+-- PLACEHOLDER VALUES — allowedBlockTypes and the entry/mid/top tiering below are
+-- illustrative only (entry tier's 15 mirrors the design mockup's "0/15 components
+-- used", though that count is now actually enforced via the Hub's /limit endpoint,
+-- not this maxComponents column). These need real numbers from product before this
+-- ships; do not treat this seed as final. Adjust with plain UPDATE statements
+-- against "PlanComponentConfig" by "planKey" — no new migration needed for value
+-- tweaks.
 --
 -- Block-type tokens below are restricted to values that exist today in
 -- packages/schemas/features/blocks/*/constants.ts. The provided design mockup shows

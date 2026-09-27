@@ -50,7 +50,12 @@ export const UploadButton = ({
     try {
       const compressedFile = await compressFile(file)
       const data = await mutateAsync({
-        filePathProps,
+        // Documents need their real name in the storage key so the URL
+        // itself carries a file name (WhatsApp/Hub delivery relies on it).
+        filePathProps:
+          fileType === 'document' && 'blockId' in filePathProps
+            ? { ...filePathProps, fileName: file.name }
+            : filePathProps,
         fileType: compressedFile.type,
         maxFileSize: maxSizeInMB,
       })

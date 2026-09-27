@@ -15,6 +15,7 @@ const inputSchema = z.object({
       typebotId: z.string(),
       blockId: z.string(),
       itemId: z.string().optional(),
+      fileName: z.string().optional(),
     })
     .or(
       z.object({
@@ -77,7 +78,7 @@ export const generateUploadUrl = authenticatedProcedure
       return {
         presignedUrl: presignedPostPolicy.postURL,
         formData: presignedPostPolicy.formData,
-        fileUrl: getPublicFileUrl(filePath),
+        fileUrl: getPublicFileUrl(encodeFileNameSegment(filePath)),
       }
     }
   )
@@ -174,5 +175,20 @@ const parseFilePath = async ({
   }
   return `public/workspaces/${input.workspaceId}/typebots/${
     input.typebotId
-  }/blocks/${input.blockId}${input.itemId ? `/items/${input.itemId}` : ''}`
+  }/blocks/${input.blockId}${input.itemId ? `/items/${input.itemId}` : ''}${
+    input.fileName ? `/${sanitizeFileNameForPath(input.fileName)}` : ''
+  }`
+}
+
+// Strips path separators so a crafted file name can't add extra key segments.
+const sanitizeFileNameForPath = (fileName: string) =>
+  fileName.replace(/[/\\]/g, '_')
+
+// Only the trailing file name needs escaping; workspace/typebot/block ids are already URL-safe.
+const encodeFileNameSegment = (filePath: string) => {
+  const segments = filePath.split('/')
+  const fileName = segments.pop()
+  return fileName
+    ? [...segments, encodeURIComponent(fileName)].join('/')
+    : filePath
 }
