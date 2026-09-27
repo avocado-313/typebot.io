@@ -1,8 +1,9 @@
-import { isNotDefined } from '@typebot.io/lib/utils'
+import { isDefined, isNotDefined } from '@typebot.io/lib/utils'
 import { filterPotentiallySensitiveLogs } from '../../logs/filterPotentiallySensitiveLogs'
 import { parseDynamicTheme } from '../../parseDynamicTheme'
 import { computeCurrentProgress } from '../../computeCurrentProgress'
 import { continueBotFlow } from '../../continueBotFlow'
+import { convertMessageToWhatsAppMessage } from '../../whatsapp/convertMessageToWhatsAppMessage'
 
 /**
  * Shapes the result of a resumed or freshly-started flow into the same
@@ -37,6 +38,13 @@ export const buildChatChunkResponse = ({
   return {
     sessionId,
     messages,
+    // Pre-converted to the exact WhatsApp Cloud API message shape (e.g. a document's
+    // name lives at `.document.filename`, not `.content.fileName` like `messages`
+    // does), for callers (the Hub) that relay straight to the Cloud API instead of
+    // re-deriving it from the generic bubble block shape.
+    whatsAppMessages: messages
+      .map(convertMessageToWhatsAppMessage)
+      .filter(isDefined),
     input,
     clientSideActions,
     dynamicTheme: parseDynamicTheme(newSessionState),
