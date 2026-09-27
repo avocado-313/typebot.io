@@ -91,7 +91,9 @@ export const convertMessageToWhatsAppMessage = (
     }
     case BubbleBlockType.EMBED: {
       if (!message.content.url) return null
-      if (message.content.fileName) {
+      const fileName =
+        message.content.fileName ?? guessFileNameFromUrl(message.content.url)
+      if (fileName) {
         const caption = message.content.caption?.length
           ? convertRichTextToMarkdown(message.content.caption, {
               flavour: 'whatsapp',
@@ -101,7 +103,7 @@ export const convertMessageToWhatsAppMessage = (
           type: 'document',
           document: {
             link: message.content.url,
-            filename: message.content.fileName,
+            filename: fileName,
             ...(caption ? { caption } : {}),
           },
         }
@@ -136,4 +138,16 @@ export const isHttpUrl = (text: string) =>
 export const isGifFileUrl = (url: string) => {
   const urlWithoutQueryParams = url.split('?')[0]
   return urlWithoutQueryParams.endsWith('.gif')
+}
+
+// Last-resort name so a document link never degrades to a bare, unnamed link
+// (which WhatsApp renders as a generic "Untitled" preview card).
+const guessFileNameFromUrl = (url: string): string | undefined => {
+  try {
+    const { pathname } = new URL(url)
+    const segment = decodeURIComponent(pathname.split('/').pop() ?? '')
+    return segment.includes('.') ? segment : undefined
+  } catch {
+    return undefined
+  }
 }
