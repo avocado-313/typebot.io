@@ -50,6 +50,9 @@ const nextConfig = {
   experimental: {
     outputFileTracingRoot: join(__dirname, '../../'),
     serverComponentsExternalPackages: ['isolated-vm'],
+    outputFileTracingIncludes: {
+      '/help/[...slug]': ['./content/help/**/*'],
+    },
   },
   webpack: (config, { isServer }) => {
     if (isServer) return config

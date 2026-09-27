@@ -20,16 +20,14 @@ export const executeWait = (
 
   return {
     outgoingEdgeId: block.outgoingEdgeId,
-    clientSideActions:
-      parsedSecondsToWaitFor || block.options?.shouldPause
-        ? [
-            {
-              type: 'wait',
-              wait: { secondsToWaitFor: parsedSecondsToWaitFor ?? 0 },
-              expectsDedicatedReply: block.options.shouldPause,
-            },
-          ]
-        : undefined,
+    clientSideActions: parsedSecondsToWaitFor
+      ? [
+          {
+            type: 'wait',
+            wait: { secondsToWaitFor: parsedSecondsToWaitFor },
+          },
+        ]
+      : undefined,
   }
 }
 

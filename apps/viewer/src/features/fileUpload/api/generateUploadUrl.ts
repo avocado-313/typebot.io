@@ -2,6 +2,7 @@ import { publicProcedure } from '@/helpers/server/trpc'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 import { generatePresignedPostPolicy } from '@typebot.io/lib/s3/generatePresignedPostPolicy'
+import { getPublicFileUrl } from '@typebot.io/lib/s3/getPublicFileUrl'
 import { env } from '@typebot.io/env'
 import prisma from '@typebot.io/lib/prisma'
 import { getSession } from '@typebot.io/bot-engine/queries/getSession'
@@ -115,9 +116,7 @@ export const generateUploadUrl = publicProcedure
       fileUrl:
         visibility === 'Private' && !isPreview
           ? `${env.NEXTAUTH_URL}/api/typebots/${typebotId}/results/${resultId}/${fileName}`
-          : env.S3_PUBLIC_CUSTOM_DOMAIN
-          ? `${env.S3_PUBLIC_CUSTOM_DOMAIN}/${filePath}`
-          : `${presignedPostPolicy.postURL}/${presignedPostPolicy.formData.key}`,
+          : getPublicFileUrl(filePath),
     }
   })
 

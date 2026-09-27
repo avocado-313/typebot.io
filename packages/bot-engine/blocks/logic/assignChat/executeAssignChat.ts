@@ -22,6 +22,14 @@ export const executeAssignChat = (
     assign['email'] = block.options.email
   }
 
+  if (
+    (assignType === assignChatType.AGENT ||
+      assignType === assignChatType.TEAM) &&
+    block.options?.assigneeId
+  ) {
+    assign['assigneeId'] = block.options.assigneeId
+  }
+
   if (assignType === assignChatType.SMART_ASSIGNMENT) {
     if (!block.options?.ruleId)
       throw new TRPCError({

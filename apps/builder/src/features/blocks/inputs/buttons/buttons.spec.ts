@@ -44,26 +44,28 @@ test.describe.parallel('Buttons input block', () => {
     await page.click('button[aria-label="Close"]')
 
     await page.getByTestId('block block2').click({ position: { x: 0, y: 0 } })
-    await page.click('text=Multiple choice?')
-    await page.getByLabel('Button label:').fill('Go')
+    await expect(page.getByText('Button message')).toBeVisible()
+    await page.getByPlaceholder('Enter body').fill('Pick an item')
+    await page.getByPlaceholder('Enter footer').fill('Tap one')
+    await expect(page.getByText('Optional · 7 / 60')).toBeVisible()
     await page.getByPlaceholder('Select a variable').nth(1).click()
     await page.getByText('var1').click()
     await expect(page.getByText('Setvar1')).toBeVisible()
     await page.getByTestId('block block2').click({ position: { x: 0, y: 0 } })
+    await expect(
+      page.getByTestId('block block2').getByText('Pick an item')
+    ).toBeVisible()
+    await expect(page.getByText('Failover')).toBeVisible()
 
+    // Reply buttons are capped at 3, so the add button disappears.
     await page.locator('span').filter({ hasText: 'Item 1' }).hover()
     await page.waitForTimeout(1000)
     await page.click('[aria-label="Add item"]')
     await page.getByTestId('block block2').getByRole('textbox').fill('Item 2')
-    await page.getByTestId('block block2').getByRole('textbox').press('Enter')
-
-    await page.click('text=Test')
-
-    await page.getByRole('checkbox', { name: 'Item 3' }).click()
-    await page.getByRole('checkbox', { name: 'Item 1' }).click()
-    await page.locator('text=Go').click()
-
-    await expect(page.locator('text="Item 3, Item 1"')).toBeVisible()
+    await page.getByTestId('block block2').getByRole('textbox').press('Escape')
+    await page.locator('span').filter({ hasText: 'Item 2' }).hover()
+    await page.waitForTimeout(1000)
+    await expect(page.locator('[aria-label="Add item"]')).toBeHidden()
   })
 })
 
@@ -83,21 +85,11 @@ test('Variable buttons should work', async ({ page }) => {
   await expect(page.locator('text=Ok great!')).toBeVisible()
   await page.click('text="Item 1"')
   await page.getByRole('textbox').fill('{{Item 2}}')
-  await page.getByTestId('block block1').click({ position: { x: 0, y: 0 } })
-  await page.click('text=Multiple choice?')
   await page.click('text="Restart"')
   await page
     .locator('typebot-standard')
-    .getByRole('checkbox', { name: 'Variable item' })
-    .first()
-    .click()
-  await page
-    .locator('typebot-standard')
-    .getByRole('checkbox', { name: 'Variable item' })
+    .getByRole('button', { name: 'Variable item' })
     .nth(1)
     .click()
-  await page.locator('text="Send"').click()
-  await expect(
-    page.locator('text="Variable item, Variable item"')
-  ).toBeVisible()
+  await expect(page.getByTestId('guest-bubble')).toHaveText('Variable item')
 })

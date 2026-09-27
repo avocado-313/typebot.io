@@ -32,6 +32,16 @@ export const interactiveListHeaderTypes = [
   headerType.TEXT,
 ] as const satisfies headerType[]
 
+// Meta's limits for interactive reply-button and list messages.
+export const interactiveLimits = {
+  bodyMaxLength: 1024,
+  footerMaxLength: 60,
+  textHeaderMaxLength: 60,
+  listButtonTextMaxLength: 20,
+  [interactiveButtonType.REPLY]: { maxItems: 3, itemLabelMaxLength: 20 },
+  [interactiveButtonType.LIST]: { maxItems: 10, itemLabelMaxLength: 24 },
+} as const
+
 export const defaultChoiceInputOptions = {
   buttonLabel: defaultButtonLabel,
   searchInputPlaceholder: 'Filter the options...',

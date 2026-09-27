@@ -31,8 +31,18 @@ import { convertPublicTypebotToTypebot } from '@/features/publish/helpers/conver
 import { trpc } from '@/lib/trpc'
 import { EventsActions, eventsActions } from './typebotActions/events'
 import { useGroupsStore } from '@/features/graph/hooks/useGroupsStore'
+import { ComponentsPlanConfig } from '@/features/typebot/helpers/componentsLimit'
 
 const autoSaveTimeout = 15000
+
+// Fail-open default: while the query is loading, or if it errors, treat the
+// workspace as unrestricted rather than blocking block creation on a network call.
+const unrestrictedComponentsPlanConfig: ComponentsPlanConfig = {
+  currentPlanKey: null,
+  maxComponents: null,
+  allowedBlockTypes: ['*'],
+  allPlans: [],
+}
 
 type UpdateTypebotPayload = Partial<
   Pick<
@@ -74,6 +84,7 @@ const typebotContext = createContext<
       save?: boolean
     }) => Promise<TypebotV6 | undefined>
     restorePublishedTypebot: () => void
+    componentsPlanConfig: ComponentsPlanConfig
   } & GroupsActions &
     BlocksActions &
     ItemsActions &
@@ -173,6 +184,16 @@ export const TypebotProvider = ({
           description: error.message,
         }),
     })
+
+  // Fetched once here and shared via context so the sidebar's lock icons, the usage
+  // badge, and createBlock's synchronous check all read the exact same data.
+  const { data: componentsPlanConfigData } =
+    trpc.billing.getComponentsPlanConfig.useQuery(
+      { workspaceId: typebotData?.typebot.workspaceId as string },
+      { enabled: isDefined(typebotData?.typebot.workspaceId) }
+    )
+  const componentsPlanConfig =
+    componentsPlanConfigData ?? unrestrictedComponentsPlanConfig
 
   const typebot = typebotData?.typebot as TypebotV6
   const publishedTypebot = (publishedTypebotData?.publishedTypebot ??
@@ -415,12 +436,18 @@ export const TypebotProvider = ({
         isPublished,
         updateTypebot: updateLocalTypebot,
         restorePublishedTypebot,
+        componentsPlanConfig,
         ...groupsActions(
           setLocalTypebot as SetTypebot,
           showToast,
           unpublishTypebot
         ),
-        ...blocksAction(setLocalTypebot as SetTypebot),
+        ...blocksAction(
+          setLocalTypebot as SetTypebot,
+          localTypebot,
+          componentsPlanConfig,
+          showToast
+        ),
         ...variablesAction(setLocalTypebot as SetTypebot),
         ...edgesAction(setLocalTypebot as SetTypebot),
         ...itemsAction(setLocalTypebot as SetTypebot),

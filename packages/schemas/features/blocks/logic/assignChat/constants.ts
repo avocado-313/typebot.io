@@ -1,6 +1,7 @@
 export enum assignChatType {
   AGENT = 'agent',
   TEAM = 'team',
+  /** @deprecated No longer offered in the builder; kept so existing flows keep running. */
   HANDOVER = 'handover',
   SMART_ASSIGNMENT = 'smart_assignment',
 }
@@ -9,5 +10,12 @@ export const assignChatTypeOptions = [
   assignChatType.AGENT,
   assignChatType.TEAM,
   assignChatType.HANDOVER,
+  assignChatType.SMART_ASSIGNMENT,
+] as const satisfies assignChatType[]
+
+/** Types a bot builder can pick for a new or edited Assign Chat block. */
+export const selectableAssignChatTypeOptions = [
+  assignChatType.AGENT,
+  assignChatType.TEAM,
   assignChatType.SMART_ASSIGNMENT,
 ] as const satisfies assignChatType[]

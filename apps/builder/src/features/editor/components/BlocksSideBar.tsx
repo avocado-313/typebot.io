@@ -14,7 +14,7 @@ import {
 import { useBlockDnd } from '@/features/graph/providers/GraphDndProvider'
 import React, { useState } from 'react'
 import { BlockCard } from './BlockCard'
-import { LockedIcon, UnlockedIcon } from '@/components/icons'
+import { LockedIcon, UnlockedIcon, ListIcon } from '@/components/icons'
 import { BlockCardOverlay } from './BlockCardOverlay'
 import { headerHeight } from '../constants'
 import { useTranslate } from '@tolgee/react'
@@ -22,8 +22,12 @@ import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/con
 import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
 import { IntegrationBlockType } from '@typebot.io/schemas/features/blocks/integrations/constants'
 import { LogicBlockType } from '@typebot.io/schemas/features/blocks/logic/constants'
+import { interactiveButtonType } from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 import { BlockV6 } from '@typebot.io/schemas'
+import { isDeprecatedBlockType } from '@typebot.io/schemas/helpers'
 import { useDebouncedCallback } from 'use-debounce'
+import { createId } from '@paralleldrive/cuid2'
+import { ListBlockCard } from '@/features/blocks/inputs/buttons/components/ListBlockCard'
 
 // Integration blocks migrated to forged blocks
 const legacyIntegrationBlocks = [
@@ -37,7 +41,12 @@ const legacyIntegrationBlocks = [
 
 export const BlocksSideBar = () => {
   const { t } = useTranslate()
-  const { setDraggedBlockType, draggedBlockType } = useBlockDnd()
+  const {
+    setDraggedBlockType,
+    draggedBlockType,
+    setDraggedBlock,
+    draggedBlock,
+  } = useBlockDnd()
   const [position, setPosition] = useState({
     x: 0,
     y: 0,
@@ -46,10 +55,12 @@ export const BlocksSideBar = () => {
   const [isLocked, setIsLocked] = useState(true)
   const [isExtended, setIsExtended] = useState(true)
 
+  const isDraggingNewListBlock = draggedBlock?.groupId === ''
+
   const closeSideBar = useDebouncedCallback(() => setIsExtended(false), 200)
 
   const handleMouseMove = (event: MouseEvent) => {
-    if (!draggedBlockType) return
+    if (!draggedBlockType && !isDraggingNewListBlock) return
     const { clientX, clientY } = event
     setPosition({
       ...position,
@@ -59,19 +70,38 @@ export const BlocksSideBar = () => {
   }
   useEventListener('mousemove', handleMouseMove)
 
-  const handleMouseDown = (e: React.MouseEvent, type: BlockV6['type']) => {
+  const computePositionFromMouseDown = (e: React.MouseEvent) => {
     const element = e.currentTarget as HTMLDivElement
     const rect = element.getBoundingClientRect()
     setPosition({ x: rect.left, y: rect.top })
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
     setRelativeCoordinates({ x, y })
+  }
+
+  const handleMouseDown = (e: React.MouseEvent, type: BlockV6['type']) => {
+    computePositionFromMouseDown(e)
     setDraggedBlockType(type)
   }
 
+  const handleListCardMouseDown = (e: React.MouseEvent) => {
+    computePositionFromMouseDown(e)
+    setDraggedBlock({
+      id: createId(),
+      type: InputBlockType.CHOICE,
+      items: [{ id: createId() }],
+      options: {
+        isInteractive: true,
+        interactiveButtonType: interactiveButtonType.LIST,
+      },
+      groupId: '',
+    } as BlockV6 & { groupId: string })
+  }
+
   const handleMouseUp = () => {
-    if (!draggedBlockType) return
+    if (!draggedBlockType && !isDraggingNewListBlock) return
     setDraggedBlockType(undefined)
+    if (isDraggingNewListBlock) setDraggedBlock(undefined)
     setPosition({
       x: 0,
       y: 0,
@@ -154,9 +184,16 @@ export const BlocksSideBar = () => {
             {t('editor.sidebarBlocks.blockType.inputs.heading')}
           </Text>
           <SimpleGrid columns={2} spacing="3">
-            {Object.values(InputBlockType).map((type) => (
-              <BlockCard key={type} type={type} onMouseDown={handleMouseDown} />
-            ))}
+            {Object.values(InputBlockType)
+              .filter((type) => !isDeprecatedBlockType(type))
+              .map((type) => (
+                <BlockCard
+                  key={type}
+                  type={type}
+                  onMouseDown={handleMouseDown}
+                />
+              ))}
+            <ListBlockCard onMouseDown={handleListCardMouseDown} />
           </SimpleGrid>
         </Stack>
 
@@ -165,19 +202,8 @@ export const BlocksSideBar = () => {
             {t('editor.sidebarBlocks.blockType.logic.heading')}
           </Text>
           <SimpleGrid columns={2} spacing="3">
-            {Object.values(LogicBlockType).map((type) => (
-              <BlockCard key={type} type={type} onMouseDown={handleMouseDown} />
-            ))}
-          </SimpleGrid>
-        </Stack>
-
-        <Stack>
-          <Text fontSize="sm" fontWeight="semibold">
-            {t('editor.sidebarBlocks.blockType.integrations.heading')}
-          </Text>
-          <SimpleGrid columns={2} spacing="3">
-            {Object.values(IntegrationBlockType)
-              .filter((type) => !legacyIntegrationBlocks.includes(type))
+            {Object.values(LogicBlockType)
+              .filter((type) => !isDeprecatedBlockType(type))
               .map((type) => (
                 <BlockCard
                   key={type}
@@ -188,10 +214,43 @@ export const BlocksSideBar = () => {
           </SimpleGrid>
         </Stack>
 
-        {draggedBlockType && (
+        <Stack>
+          <Text fontSize="sm" fontWeight="semibold">
+            {t('editor.sidebarBlocks.blockType.integrations.heading')}
+          </Text>
+          <SimpleGrid columns={2} spacing="3">
+            {Object.values(IntegrationBlockType)
+              .filter(
+                (type) =>
+                  !legacyIntegrationBlocks.includes(type) &&
+                  !isDeprecatedBlockType(type)
+              )
+              .map((type) => (
+                <BlockCard
+                  key={type}
+                  type={type}
+                  onMouseDown={handleMouseDown}
+                />
+              ))}
+          </SimpleGrid>
+        </Stack>
+
+        {(draggedBlockType || isDraggingNewListBlock) && (
           <Portal>
             <BlockCardOverlay
-              type={draggedBlockType}
+              type={draggedBlockType ?? InputBlockType.CHOICE}
+              icon={
+                isDraggingNewListBlock ? (
+                  <ListIcon color="purple.500" />
+                ) : undefined
+              }
+              label={
+                isDraggingNewListBlock ? (
+                  <Text fontSize="sm">
+                    {t('editor.sidebarBlock.list.label')}
+                  </Text>
+                ) : undefined
+              }
               onMouseUp={handleMouseUp}
               pos="fixed"
               top="0"

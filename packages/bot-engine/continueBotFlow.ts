@@ -16,6 +16,11 @@ import { getNextGroup } from './getNextGroup'
 import { formatEmail } from './blocks/inputs/email/formatEmail'
 import { formatPhoneNumber } from './blocks/inputs/phone/formatPhoneNumber'
 import { resumeWebhookExecution } from './blocks/integrations/webhook/resumeWebhookExecution'
+import { saveDataInResponseVariableMapping } from './blocks/integrations/webhook/saveDataInResponseVariableMapping'
+import {
+  parseWhatsappFlowResponse,
+  resumeTriggerWhatsappFlow,
+} from './blocks/logic/triggerWhatsappFlow/resumeTriggerWhatsappFlow'
 import { saveAnswer } from './queries/saveAnswer'
 import { parseButtonsReply } from './blocks/inputs/buttons/parseButtonsReply'
 import { ParsedReply, Reply } from './types'
@@ -70,7 +75,10 @@ export const continueBotFlow = async (
   const setVariableHistory: SetVariableHistoryItem[] = []
 
   if (reply?.type === 'location') {
-    console.log('[AVC-DEBUG] continueBotFlow: location message received =', JSON.stringify(reply))
+    console.log(
+      '[AVC-DEBUG] continueBotFlow: location message received =',
+      JSON.stringify(reply)
+    )
   }
 
   if (!newSessionState.currentBlockId)
@@ -80,8 +88,36 @@ export const continueBotFlow = async (
       textBubbleContentFormat,
     })
 
-  let nextBlockId: string = newSessionState.currentBlockId
-  if (reply && reply.type === 'text') {
+  const parkedBlockId: string = newSessionState.currentBlockId
+
+  const getParkedBlockType = () => {
+    try {
+      return getBlockById(parkedBlockId, state.typebotsQueue[0].typebot.groups)
+        .block.type
+    } catch (err) {
+      return undefined
+    }
+  }
+
+  // A Webhook listener is resumed with the raw callback payload as its reply,
+  // and a WhatsApp flow with its `response_json`. Global Jump matches against
+  // reply text, so a wildcard pattern would otherwise swallow that payload and
+  // jump away instead of resuming the block.
+  const isMachineReplyToParkedBlock = (text: string) => {
+    const parkedBlockType = getParkedBlockType()
+    if (parkedBlockType === LogicBlockType.WEBHOOK) return true
+    return (
+      parkedBlockType === LogicBlockType.TRIGGER_WHATSAPP_FLOW &&
+      isDefined(parseWhatsappFlowResponse(text))
+    )
+  }
+
+  let nextBlockId: string = parkedBlockId
+  if (
+    reply &&
+    reply.type === 'text' &&
+    !isMachineReplyToParkedBlock(reply.text)
+  ) {
     let result = getGlobalJumpGroup(newSessionState, reply?.text)
 
     if (result?.blockId) nextBlockId = result.blockId
@@ -130,6 +166,33 @@ export const continueBotFlow = async (
       response: JSON.parse(reply.text),
     })
     if (result.newSessionState) newSessionState = result.newSessionState
+  } else if (reply && block.type === LogicBlockType.WEBHOOK) {
+    let response: { statusCode?: number; data?: unknown }
+    try {
+      response = JSON.parse(reply.text)
+    } catch (err) {
+      // A caller is free to post a non-JSON body; expose it as raw data rather
+      // than failing the whole conversation.
+      response = { data: reply.text }
+    }
+    const result = saveDataInResponseVariableMapping({
+      state,
+      blockType: block.type,
+      blockId: block.id,
+      responseVariableMapping: block.options?.responseVariableMapping,
+      outgoingEdgeId: block.outgoingEdgeId,
+      response,
+    })
+    if (result.newSessionState) newSessionState = result.newSessionState
+  } else if (block.type === LogicBlockType.TRIGGER_WHATSAPP_FLOW) {
+    const result = resumeTriggerWhatsappFlow({
+      state: newSessionState,
+      block,
+      replyText: reply?.type === 'text' ? reply.text : undefined,
+    })
+    if (result.newSessionState) newSessionState = result.newSessionState
+    if (result.newSetVariableHistory)
+      setVariableHistory.push(...result.newSetVariableHistory)
   } else if (isForgedBlockType(block.type)) {
     if (reply) {
       const options = (block as ForgedBlock).options
@@ -343,7 +406,7 @@ const saveAttachmentsVarIfAny = ({
     !reply.attachedFileUrls ||
     reply.attachedFileUrls.length === 0
   )
-    return state;
+    return state
 
   const variable = state.typebotsQueue[0].typebot.variables.find(
     (variable) => variable.id === block.options?.attachments?.saveVariableId
@@ -384,7 +447,10 @@ const saveInputVarIfAny = ({
   if (!foundVariable) return state
 
   if (reply.type === 'location') {
-    console.log('[AVC-DEBUG] saveInputVarIfAny: location reply received =', JSON.stringify(reply))
+    console.log(
+      '[AVC-DEBUG] saveInputVarIfAny: location reply received =',
+      JSON.stringify(reply)
+    )
   }
 
   // For a location reply, persist the full structured object (coordinates,

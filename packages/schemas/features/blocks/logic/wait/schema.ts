@@ -4,7 +4,6 @@ import { LogicBlockType } from '../constants'
 
 export const waitOptionsSchema = z.object({
   secondsToWaitFor: z.string().optional(),
-  shouldPause: z.boolean().optional(),
 })
 
 export const waitBlockSchema = blockBaseSchema.merge(

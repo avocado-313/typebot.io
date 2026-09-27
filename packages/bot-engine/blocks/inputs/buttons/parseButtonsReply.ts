@@ -1,6 +1,10 @@
 import { ChoiceInputBlock, SessionState } from '@typebot.io/schemas'
 import { injectVariableValuesInButtonsInputBlock } from './injectVariableValuesInButtonsInputBlock'
 import { ParsedReply } from '../../../types'
+import {
+  interactiveButtonType,
+  interactiveLimits,
+} from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 
 export const parseButtonsReply =
   (state: SessionState) =>
@@ -68,14 +72,39 @@ export const parseButtonsReply =
     const longestItemsFirst = [...displayedItems].sort(
       (a, b) => (b.content?.length ?? 0) - (a.content?.length ?? 0)
     )
-    const matchedItem = longestItemsFirst.find(
-      (item) =>
-        item.id === inputValue ||
-        (item.content && inputValue.trim() === item.content.trim())
-    )
+    const matchedItem =
+      longestItemsFirst.find(
+        (item) =>
+          item.id === inputValue ||
+          (item.content && inputValue.trim() === item.content.trim())
+      ) ?? findItemByTruncatedTitle(displayedItems, inputValue, block)
     if (!matchedItem) return { status: 'fail' }
     return {
       status: 'success',
       reply: matchedItem.content ?? '',
     }
   }
+
+// WhatsApp cuts long button and row titles, and the tapped title is what comes
+// back as the reply. Match it against the start of the full item label.
+const findItemByTruncatedTitle = (
+  items: ChoiceInputBlock['items'],
+  inputValue: string,
+  block: ChoiceInputBlock
+) => {
+  if (!block.options?.isInteractive) return
+  const { itemLabelMaxLength } =
+    interactiveLimits[
+      block.options.interactiveButtonType ?? interactiveButtonType.REPLY
+    ]
+  // Cut the raw label like the hub does, then compare trimmed values.
+  const trimmedInput = inputValue.trim()
+  if (!trimmedInput) return
+  return items.find((item) => {
+    const contentChars = Array.from(item.content ?? '')
+    return (
+      contentChars.length > itemLabelMaxLength &&
+      contentChars.slice(0, itemLabelMaxLength).join('').trim() === trimmedInput
+    )
+  })
+}

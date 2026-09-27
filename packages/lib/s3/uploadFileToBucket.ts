@@ -1,3 +1,4 @@
+import { getPublicFileUrl } from './getPublicFileUrl'
 import { env } from '@typebot.io/env'
 import { Client } from 'minio'
 
@@ -31,9 +32,5 @@ export const uploadFileToBucket = async ({
     'Cache-Control': 'public, max-age=86400',
   })
 
-  return env.S3_PUBLIC_CUSTOM_DOMAIN
-    ? `${env.S3_PUBLIC_CUSTOM_DOMAIN}/public/${key}`
-    : `http${env.S3_SSL ? 's' : ''}://${env.S3_ENDPOINT}${
-        env.S3_PORT ? `:${env.S3_PORT}` : ''
-      }/${env.S3_BUCKET}/public/${key}`
+  return getPublicFileUrl('public/' + key)
 }

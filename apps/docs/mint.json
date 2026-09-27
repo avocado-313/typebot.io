@@ -106,7 +106,12 @@
                 "editor/blocks/logic/typebot-link",
                 "editor/blocks/logic/wait",
                 "editor/blocks/logic/jump",
-                "editor/blocks/logic/ab-test"
+                "editor/blocks/logic/global-jump",
+                "editor/blocks/logic/webhook",
+                "editor/blocks/logic/ab-test",
+                "editor/blocks/logic/assign-chat",
+                "editor/blocks/logic/close-chat",
+                "editor/blocks/logic/trigger-whatsapp-flow"
               ]
             },
             {

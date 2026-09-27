@@ -28,8 +28,15 @@ export const convertInputToWhatsAppMessages = (
     case InputBlockType.URL:
     case InputBlockType.PAYMENT:
     case InputBlockType.RATING:
-    case InputBlockType.TEXT:
       return []
+    case InputBlockType.TEXT: {
+      const question = convertRichTextToMarkdown(
+        input.options?.labels?.richTextPlaceholder ?? [],
+        { flavour: 'whatsapp' }
+      )
+      if (isEmpty(question)) return []
+      return [{ type: 'text', text: { body: question } }]
+    }
     case InputBlockType.PICTURE_CHOICE: {
       if (
         input.options?.isMultipleChoice ??

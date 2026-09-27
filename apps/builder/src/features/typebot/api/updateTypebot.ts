@@ -20,6 +20,11 @@ import { isCloudProdInstance } from '@/helpers/isCloudProdInstance'
 import { Prisma } from '@typebot.io/prisma'
 import { migrateTypebot } from '@typebot.io/migrations/migrateTypebot'
 import { checkGroupLimits, shouldUnpublishTypebot } from '@typebot.io/lib'
+import { getComponentsPlanConfigForWorkspace } from '@/features/billing/helpers/getComponentsPlanConfigForWorkspace'
+import {
+  countComponents,
+  isBlockTypeAllowed,
+} from '@/features/typebot/helpers/componentsLimit'
 
 const typebotUpdateSchemaPick = {
   version: true,
@@ -87,6 +92,10 @@ export const updateTypebot = authenticatedProcedure
         id: true,
         customDomain: true,
         publicId: true,
+        // Needed to diff against the incoming groups for the component count/access
+        // checks below (grandfathering: only genuinely new growth/new block types are
+        // blocked, not a save that leaves an already-over-limit bot alone).
+        groups: true,
         collaborators: {
           select: {
             userId: true,
@@ -171,6 +180,56 @@ export const updateTypebot = authenticatedProcedure
           message: `Maximum group limit (${limits.maxGroups}) exceeded. Cannot update typebot with ${groups.length} groups.`,
         })
       }
+    }
+
+    // Plan-based component count/access checks. Diff-aware against the previously
+    // saved groups (not the existing group-limit check's unconditional comparison
+    // above) so a bot already over a newly-applied limit keeps saving normally as
+    // long as the save doesn't grow the count or introduce a new instance of a
+    // now-locked block type — this is what "existing flows keep working" requires.
+    if (groups && !isBackupWorkspace) {
+      const previousGroups =
+        (existingTypebot.groups as
+          | { blocks: { id: string; type: string }[] }[]
+          | null) ?? []
+      const componentsPlanConfig = await getComponentsPlanConfigForWorkspace(
+        existingTypebot.workspace.id
+      )
+
+      const newCount = countComponents({ groups })
+      const prevCount = countComponents({ groups: previousGroups })
+      if (
+        componentsPlanConfig.maxComponents !== null &&
+        newCount > componentsPlanConfig.maxComponents &&
+        newCount > prevCount
+      )
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `Your plan allows up to ${componentsPlanConfig.maxComponents} components (attempted ${newCount}). Upgrade to add more.`,
+        })
+
+      const previousBlockIds = new Set(
+        previousGroups.flatMap((group) => group.blocks.map((block) => block.id))
+      )
+      // Loosely-typed view of the incoming groups for this diff only — we only need
+      // id/type here, not the full discriminated Block union `groups` otherwise
+      // carries (which is what gets persisted below).
+      const incomingBlocks = (
+        groups as unknown as { blocks: { id: string; type: string }[] }[]
+      ).flatMap((group) => group.blocks)
+      const newDisallowedBlock = incomingBlocks.find(
+        (block) =>
+          !previousBlockIds.has(block.id) &&
+          !isBlockTypeAllowed(
+            block.type,
+            componentsPlanConfig.allowedBlockTypes
+          )
+      )
+      if (newDisallowedBlock)
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `The "${newDisallowedBlock.type}" component isn't included in your current plan.`,
+        })
     }
 
     const newTypebot = await prisma.typebot.update({

@@ -48,6 +48,8 @@ import {
   defaultHostAvatarIsEnabled,
 } from '@typebot.io/schemas/features/typebot/theme/constants'
 import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/constants'
+import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
+import { convertRichTextToMarkdown } from '@typebot.io/lib/markdown/convertRichTextToMarkdown'
 import { LogicBlockType } from '@typebot.io/schemas/features/blocks/logic/constants'
 import { parseVariablesInRichText } from './parseBubbleBlock'
 import { getGlobalJumpGroup } from './getGlobalJumpGroup'
@@ -59,6 +61,11 @@ type StartParams =
     } & StartPreviewChatInput)
   | ({
       type: 'live'
+      // Internal-only: lets a server-side caller (the webhook trigger) start a
+      // live session at an arbitrary group instead of the typebot's Start
+      // event. Not part of the public startChat schema, so it can never be
+      // set by an external API caller.
+      startFrom?: StartFrom
     } & StartChatInput)
 
 type Props = {
@@ -177,8 +184,7 @@ export const startSession = async ({
     }
   }
 
-  let startFrom: StartFrom | undefined =
-    startParams.type === 'preview' ? startParams.startFrom : undefined
+  let startFrom: StartFrom | undefined = startParams.startFrom
 
   if (startParams.message && startParams.message.type === 'text') {
     let result = getGlobalJumpGroup(initialState, startParams.message?.text)
@@ -200,6 +206,7 @@ export const startSession = async ({
   })
 
   // If params has message and first block is an input block, we can directly continue the bot flow
+  // unless that input asks its own question, which must be sent before collecting an answer
   if (startParams.message) {
     const firstEdgeId = getFirstEdgeId({
       typebot: chatReply.newSessionState.typebotsQueue[0].typebot,
@@ -216,7 +223,11 @@ export const startSession = async ({
     })
     const newSessionState = nextGroup.newSessionState
     const firstBlock = nextGroup.group?.blocks.at(0)
-    if (firstBlock && isInputBlock(firstBlock)) {
+    if (
+      firstBlock &&
+      isInputBlock(firstBlock) &&
+      !inputHasOwnQuestion(firstBlock)
+    ) {
       const resultId = newSessionState.typebotsQueue[0].resultId
       if (resultId)
         await upsertResult({
@@ -322,6 +333,17 @@ export const startSession = async ({
     setVariableHistory,
   }
 }
+
+const inputHasOwnQuestion = (block: Block) =>
+  block.type === InputBlockType.TEXT &&
+  isNotEmpty(
+    convertRichTextToMarkdown(
+      block.options?.labels?.richTextPlaceholder ?? [],
+      {
+        flavour: 'whatsapp',
+      }
+    )
+  )
 
 const getTypebot = async (startParams: StartParams): Promise<StartTypebot> => {
   if (startParams.type === 'preview' && startParams.typebot)

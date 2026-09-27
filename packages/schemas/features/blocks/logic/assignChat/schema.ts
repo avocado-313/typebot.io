@@ -6,6 +6,11 @@ import { assignChatType, assignChatTypeOptions } from './constants'
 export const assignChatOptionsSchema = z.object({
   assignType: z.enum(assignChatTypeOptions).optional(),
   email: z.string().optional(),
+  // Set when assignType is 'agent' or 'team': the workspace agent/team id picked
+  // in the builder. The Hub routes by it first and falls back to email.
+  // assigneeName is stored for display in the builder.
+  assigneeId: z.string().optional(),
+  assigneeName: z.string().optional(),
   // Set only when assignType === 'smart_assignment': the Smart Assignment rule
   // the chat is handed off to. ruleName is stored for display in the builder.
   ruleId: z.string().optional(),

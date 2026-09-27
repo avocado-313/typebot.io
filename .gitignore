@@ -42,3 +42,4 @@ snapshots
 
 .tolgee
 .act-secrets.env
+*.tsbuildinfo

@@ -325,9 +325,6 @@
                                                 "properties": {
                                                   "url": {
                                                     "type": "string"
-                                                  },
-                                                  "isAutoplayEnabled": {
-                                                    "type": "boolean"
                                                   }
                                                 }
                                               }
@@ -833,9 +830,6 @@
                                                 "properties": {
                                                   "secondsToWaitFor": {
                                                     "type": "string"
-                                                  },
-                                                  "shouldPause": {
-                                                    "type": "boolean"
                                                   }
                                                 }
                                               }
@@ -4725,9 +4719,6 @@
                                             "properties": {
                                               "url": {
                                                 "type": "string"
-                                              },
-                                              "isAutoplayEnabled": {
-                                                "type": "boolean"
                                               }
                                             }
                                           }
@@ -5233,9 +5224,6 @@
                                             "properties": {
                                               "secondsToWaitFor": {
                                                 "type": "string"
-                                              },
-                                              "shouldPause": {
-                                                "type": "boolean"
                                               }
                                             }
                                           }
@@ -8262,9 +8250,6 @@
                                             "properties": {
                                               "url": {
                                                 "type": "string"
-                                              },
-                                              "isAutoplayEnabled": {
-                                                "type": "boolean"
                                               }
                                             }
                                           }
@@ -8770,9 +8755,6 @@
                                             "properties": {
                                               "secondsToWaitFor": {
                                                 "type": "string"
-                                              },
-                                              "shouldPause": {
-                                                "type": "boolean"
                                               }
                                             }
                                           }
@@ -17840,9 +17822,6 @@
                 "properties": {
                   "url": {
                     "type": "string"
-                  },
-                  "isAutoplayEnabled": {
-                    "type": "boolean"
                   }
                 }
               }
@@ -18345,9 +18324,6 @@
                 "properties": {
                   "secondsToWaitFor": {
                     "type": "string"
-                  },
-                  "shouldPause": {
-                    "type": "boolean"
                   }
                 }
               }
@@ -24469,9 +24445,6 @@
                             "properties": {
                               "url": {
                                 "type": "string"
-                              },
-                              "isAutoplayEnabled": {
-                                "type": "boolean"
                               }
                             }
                           }
@@ -24977,9 +24950,6 @@
                             "properties": {
                               "secondsToWaitFor": {
                                 "type": "string"
-                              },
-                              "shouldPause": {
-                                "type": "boolean"
                               }
                             }
                           }
@@ -27375,9 +27345,6 @@
                             "properties": {
                               "url": {
                                 "type": "string"
-                              },
-                              "isAutoplayEnabled": {
-                                "type": "boolean"
                               }
                             }
                           }
@@ -27883,9 +27850,6 @@
                             "properties": {
                               "secondsToWaitFor": {
                                 "type": "string"
-                              },
-                              "shouldPause": {
-                                "type": "boolean"
                               }
                             }
                           }

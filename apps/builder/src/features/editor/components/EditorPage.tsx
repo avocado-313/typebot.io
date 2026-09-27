@@ -1,5 +1,5 @@
 import { Seo } from '@/components/Seo'
-import { Flex, Spinner, useColorModeValue } from '@chakra-ui/react'
+import { Flex, HStack, Spinner, useColorModeValue } from '@chakra-ui/react'
 import {
   EditorProvider,
   useEditor,
@@ -19,6 +19,7 @@ import { SuspectedTypebotBanner } from './SuspectedTypebotBanner'
 import { useWorkspace } from '@/features/workspace/WorkspaceProvider'
 import { VariablesDrawer } from '@/features/preview/components/VariablesDrawer'
 import { VideoOnboardingFloatingWindow } from '@/features/onboarding/components/VideoOnboardingFloatingWindow'
+import { ComponentsUsageBadge } from './ComponentsUsageBadge'
 
 export const EditorPage = () => {
   const { typebot, currentUserMode, is404 } = useTypebot()
@@ -59,11 +60,15 @@ export const EditorPage = () => {
               >
                 <EventsCoordinatesProvider events={typebot.events}>
                   <Graph flex="1" typebot={typebot} key={typebot.id} />
-                  <BoardMenuButton
+                  <HStack
                     pos="absolute"
                     right="40px"
                     top={`calc(20px + ${isSuspicious ? '70px' : '0px'})`}
-                  />
+                    spacing="3"
+                  >
+                    <ComponentsUsageBadge />
+                    <BoardMenuButton />
+                  </HStack>
                   <RightPanel />
                 </EventsCoordinatesProvider>
               </GraphProvider>

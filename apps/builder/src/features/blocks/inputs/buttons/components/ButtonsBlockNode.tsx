@@ -1,110 +1,98 @@
 import { BlockIndices, ChoiceInputBlock } from '@typebot.io/schemas'
 import React from 'react'
-import {
-  Box,
-  Divider,
-  Heading,
-  Image,
-  Link,
-  Stack,
-  Tag,
-  Text,
-  Wrap,
-} from '@chakra-ui/react'
+import { Image, Link, Stack, Tag, Text, Wrap } from '@chakra-ui/react'
 import { useTypebot } from '@/features/editor/providers/TypebotProvider'
 import { SetVariableLabel } from '@/components/SetVariableLabel'
 import { ItemNodesList } from '@/features/graph/components/nodes/item/ItemNodesList'
 import { useTranslate } from '@tolgee/react'
-import { ExternalLinkIcon, ListIcon } from '../../../../../components/icons'
-import {
-  headerType,
-  interactiveButtonType,
-} from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
+import { ExternalLinkIcon } from '@/components/icons'
+import { headerType } from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 
 type Props = {
   block: ChoiceInputBlock
   indices: BlockIndices
 }
 
-const InteractiveBlock = ({ block }: Props) => {
-  const containsVariables = (value: string): boolean => {
-    return value.includes('{{') && value.includes('}}')
+const containsVariables = (value: string): boolean =>
+  value.includes('{{') && value.includes('}}')
+
+const InteractiveHeader = ({
+  type,
+  header,
+}: {
+  type?: headerType
+  header: string
+}) => {
+  switch (type) {
+    case headerType.TEXT:
+      return (
+        <Text fontWeight="semibold" noOfLines={2}>
+          {header}
+        </Text>
+      )
+    case headerType.IMAGE:
+      return (
+        <Image
+          pointerEvents="none"
+          src={containsVariables(header) ? '/images/dynamic-image.png' : header}
+          alt="Header image"
+          rounded="md"
+          objectFit="cover"
+        />
+      )
+    case headerType.VIDEO:
+      return containsVariables(header) ? (
+        <Image
+          src="/images/dynamic-image.png"
+          alt="Dynamic video thumbnail"
+          rounded="md"
+        />
+      ) : (
+        <video
+          key={header}
+          controls={true}
+          style={{ width: '100%', height: '100%', borderRadius: '10px' }}
+        >
+          <source src={header} />
+        </video>
+      )
+    case headerType.DOCUMENT:
+      return (
+        <Link href={header} isExternal>
+          View header <ExternalLinkIcon mx="2px" />
+        </Link>
+      )
+    default:
+      return null
   }
+}
+
+const InteractiveBlock = ({ block }: Pick<Props, 'block'>) => {
+  const { t } = useTranslate()
+  const interactiveData = block.options?.interactiveData
+
   return (
-    <Box p={1} maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden">
-      {block.options?.interactiveData?.header ? (
-        <>
-          {block.options?.interactiveData?.headerType === headerType.TEXT && (
-            <Heading size="xs">
-              {block.options?.interactiveData?.header}
-            </Heading>
-          )}
-          {block.options?.interactiveData?.headerType === headerType.IMAGE && (
-            <Image
-              pointerEvents="none"
-              src={
-                containsVariables(block.options?.interactiveData?.header)
-                  ? '/images/dynamic-image.png'
-                  : block.options?.interactiveData?.header
-              }
-              alt="Header image"
-              rounded="md"
-              objectFit="cover"
-            />
-          )}
-          {block.options?.interactiveData?.headerType === headerType.VIDEO && (
-            <>
-              {containsVariables(block.options?.interactiveData?.header) ? (
-                <Image
-                  src="/images/dynamic-image.png"
-                  alt="Dynamic video thumbnail"
-                  rounded="md"
-                />
-              ) : (
-                <video
-                  key={block.options?.interactiveData?.header}
-                  controls={true}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '10px',
-                  }}
-                >
-                  <source src={block.options?.interactiveData?.header} />
-                </video>
-              )}
-            </>
-          )}
-          {block.options?.interactiveData?.headerType ===
-            headerType.DOCUMENT && (
-            <Link href={block.options?.interactiveData?.header} isExternal>
-              View header <ExternalLinkIcon mx="2px" />
-            </Link>
-          )}
-        </>
-      ) : null}
-
-      {block.options?.interactiveData?.body && (
-        <Text>{block.options?.interactiveData?.body}</Text>
+    <Stack spacing={1} w="full">
+      {interactiveData?.header && (
+        <InteractiveHeader
+          type={interactiveData.headerType}
+          header={interactiveData.header}
+        />
       )}
-
-      {block.options?.interactiveData?.footer && (
-        <Text fontSize="xs" color="gray.400">
-          {block.options?.interactiveData?.footer}
+      <Text
+        color={interactiveData?.body ? 'inherit' : 'gray.500'}
+        noOfLines={4}
+        whiteSpace="pre-wrap"
+      >
+        {interactiveData?.body ||
+          t('blocks.inputs.settings.interactive.body.placeholder')}
+      </Text>
+      {interactiveData?.footer && (
+        <Text fontSize="xs" color="gray.500" noOfLines={1}>
+          {interactiveData.footer}
         </Text>
       )}
-
-      {block.options?.interactiveButtonType === interactiveButtonType.LIST &&
-        block.options?.interactiveData?.menuTitle && (
-          <>
-            <Divider />
-            <Text display="flex" justifyContent="center" alignItems="center">
-              <ListIcon mr="2px" />
-              {block.options?.interactiveData?.menuTitle}
-            </Text>
-          </>
-        )}
-    </Box>
+    </Stack>
   )
 }
 
@@ -116,10 +104,8 @@ export const ButtonsBlockNode = ({ block, indices }: Props) => {
   )?.name
 
   return (
-    <Stack w="full">
-      {block.options?.isInteractive ? (
-        <InteractiveBlock block={block} indices={indices} />
-      ) : null}
+    <Stack w="full" spacing={3}>
+      {block.options?.isInteractive ? <InteractiveBlock block={block} /> : null}
       {block.options?.dynamicVariableId ? (
         <Wrap spacing={1}>
           <Text>{t('blocks.inputs.button.variables.display.label')}</Text>

@@ -2,6 +2,7 @@ import {
   StackProps,
   HStack,
   IconButton,
+  Spacer,
   useColorModeValue,
 } from '@chakra-ui/react'
 import {
@@ -14,12 +15,12 @@ import {
   BoldIcon,
   ItalicIcon,
   UnderlineIcon,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  LinkIcon,
   UserIcon,
 } from '@/components/icons'
 import { MarkToolbarButton } from './plate/MarkToolbarButton'
-import { LinkToolbarButton } from './plate/LinkToolbarButton'
+import { getHelpDocUrl } from '@/features/graph/helpers/getHelpDocUrl'
+import { HelpDocLink } from '@/features/graph/components/nodes/block/HelpDocLink'
+import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/constants'
 
 type Props = {
   onVariablesButtonClick: () => void
@@ -30,6 +31,7 @@ export const TextEditorToolBar = ({
   ...props
 }: Props) => {
   const editor = useEditorRef()
+  const helpDocUrl = getHelpDocUrl(BubbleBlockType.TEXT)
 
   const handleVariablesButtonMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -73,9 +75,15 @@ export const TextEditorToolBar = ({
           aria-label="Toggle underline"
         />
       </span>
-      <span data-testid="link-button">
-        <LinkToolbarButton icon={<LinkIcon />} aria-label="Add link" />
-      </span>
+      {helpDocUrl && (
+        <>
+          <Spacer />
+          <HelpDocLink
+            helpDocUrl={helpDocUrl}
+            onMouseDown={(e) => e.stopPropagation()}
+          />
+        </>
+      )}
     </HStack>
   )
 }

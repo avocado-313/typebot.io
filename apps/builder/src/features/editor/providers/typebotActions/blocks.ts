@@ -14,6 +14,11 @@ import { byId } from '@typebot.io/lib'
 import { blockHasItems } from '@typebot.io/schemas/helpers'
 import { duplicateItemDraft } from './items'
 import { parseNewBlock } from '@/features/typebot/helpers/parseNewBlock'
+import {
+  ComponentsPlanConfig,
+  countComponents,
+  isBlockTypeAllowed,
+} from '@/features/typebot/helpers/componentsLimit'
 
 export type BlocksActions = {
   createBlock: (
@@ -37,8 +42,40 @@ export type WebhookCallBacks = {
   ) => void
 }
 
-export const blocksAction = (setTypebot: SetTypebot): BlocksActions => ({
+type ShowToast = (props: { title: string; description: string }) => void
+
+// currentTypebot/componentsPlanConfig are the already-fetched, last-rendered values
+// (TypebotProvider calls this factory unmemoized on every render, so they're always
+// current — no stale-closure risk). Deliberately synchronous: unlike groupsActions'
+// createGroup, this does not fetch anything over the network per call, so
+// createBlock/duplicateBlock stay synchronous and every existing call site (drag and
+// drop, paste, forged blocks) keeps working unchanged.
+export const blocksAction = (
+  setTypebot: SetTypebot,
+  currentTypebot: TypebotV6 | undefined,
+  componentsPlanConfig: ComponentsPlanConfig,
+  showToast: ShowToast
+): BlocksActions => ({
   createBlock: (block: BlockV6 | BlockV6['type'], indices: BlockIndices) => {
+    const type = typeof block === 'string' ? block : block.type
+    if (currentTypebot) {
+      const { maxComponents, allowedBlockTypes } = componentsPlanConfig
+      if (!isBlockTypeAllowed(type, allowedBlockTypes)) {
+        showToast({
+          title: 'Not in your plan',
+          description: `This component isn't included in your current plan. Upgrade to unlock it.`,
+        })
+        return undefined
+      }
+      const currentCount = countComponents(currentTypebot)
+      if (maxComponents !== null && currentCount >= maxComponents) {
+        showToast({
+          title: 'Component limit reached',
+          description: `Your plan allows up to ${maxComponents} components (${currentCount}/${maxComponents} used). Upgrade to add more.`,
+        })
+        return undefined
+      }
+    }
     let blockId
     setTypebot((typebot) =>
       produce(typebot, (typebot) => {
@@ -58,7 +95,30 @@ export const blocksAction = (setTypebot: SetTypebot): BlocksActions => ({
         typebot.groups[groupIndex].blocks[blockIndex] = { ...block, ...updates }
       })
     ),
-  duplicateBlock: ({ groupIndex, blockIndex }: BlockIndices) =>
+  duplicateBlock: ({ groupIndex, blockIndex }: BlockIndices) => {
+    if (currentTypebot) {
+      const existingBlock =
+        currentTypebot.groups[groupIndex]?.blocks[blockIndex]
+      const { maxComponents, allowedBlockTypes } = componentsPlanConfig
+      if (
+        existingBlock &&
+        !isBlockTypeAllowed(existingBlock.type, allowedBlockTypes)
+      ) {
+        showToast({
+          title: 'Not in your plan',
+          description: `This component isn't included in your current plan. Upgrade to unlock it.`,
+        })
+        return
+      }
+      const currentCount = countComponents(currentTypebot)
+      if (maxComponents !== null && currentCount >= maxComponents) {
+        showToast({
+          title: 'Component limit reached',
+          description: `Your plan allows up to ${maxComponents} components (${currentCount}/${maxComponents} used). Upgrade to add more.`,
+        })
+        return
+      }
+    }
     setTypebot((typebot) =>
       produce(typebot, (typebot) => {
         const block = { ...typebot.groups[groupIndex].blocks[blockIndex] }
@@ -68,7 +128,8 @@ export const blocksAction = (setTypebot: SetTypebot): BlocksActions => ({
         const newBlock = duplicateBlockDraft(block)
         typebot.groups[groupIndex].blocks.splice(blockIndex + 1, 0, newBlock)
       })
-    ),
+    )
+  },
   detachBlockFromGroup: (indices: BlockIndices) =>
     setTypebot((typebot) => produce(typebot, removeBlockFromGroup(indices))),
   deleteBlock: ({ groupIndex, blockIndex }: BlockIndices) =>

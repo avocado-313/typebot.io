@@ -23,6 +23,7 @@ import { BlockSourceEndpoint } from '../../endpoints/BlockSourceEndpoint'
 import { LogicBlockType } from '@typebot.io/schemas/features/blocks/logic/constants'
 import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
 import { useTranslate } from '@tolgee/react'
+import { UndoIcon } from '@/components/icons'
 
 type Props = {
   block: BlockWithItems
@@ -193,22 +194,31 @@ const DefaultItemNode = ({
   groupId: string
 }) => {
   const { t } = useTranslate()
+  const borderColor = useColorModeValue('gray.300', undefined)
+  const bgColor = useColorModeValue('gray.50', 'gray.850')
+  const failoverBorderColor = useColorModeValue('gray.300', 'gray.600')
+  const isFailover = block.type === InputBlockType.CHOICE
 
   return (
     <Flex
       px="4"
       py="2"
       borderWidth="1px"
-      borderColor={useColorModeValue('gray.300', undefined)}
-      bgColor={useColorModeValue('gray.50', 'gray.850')}
+      borderStyle={isFailover ? 'dashed' : undefined}
+      borderColor={isFailover ? failoverBorderColor : borderColor}
+      bgColor={isFailover ? 'transparent' : bgColor}
       rounded="md"
       pos="relative"
       align="center"
+      gap="2"
       cursor="not-allowed"
     >
+      {isFailover && <UndoIcon color="gray.500" />}
       <Text color="gray.500">
         {block.type === LogicBlockType.CONDITION
           ? t('blocks.inputs.button.else.label')
+          : isFailover
+          ? t('blocks.inputs.button.failover.label')
           : t('blocks.inputs.button.default.label')}
       </Text>
       <BlockSourceEndpoint

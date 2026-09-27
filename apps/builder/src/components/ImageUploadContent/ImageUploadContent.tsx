@@ -8,6 +8,7 @@ import { UnsplashPicker } from './UnsplashPicker'
 import { IconPicker } from './IconPicker'
 import { FilePathUploadProps } from '@/features/upload/api/generateUploadUrl'
 import { useTranslate } from '@tolgee/react'
+import { ImagePreview } from './ImagePreview'
 
 type Tabs = 'link' | 'upload' | 'giphy' | 'emoji' | 'unsplash' | 'icon'
 
@@ -17,6 +18,8 @@ type Props = {
   imageSize?: 'small' | 'regular' | 'thumb'
   initialTab?: Tabs
   linkWithVariableButton?: boolean
+  acceptedFileTypes?: string[]
+  maxUploadFileSizeInMB?: number
   onSubmit: (url: string) => void
   onClose?: () => void
 } & (
@@ -29,8 +32,8 @@ type Props = {
 )
 
 const defaultDisplayedTabs: Tabs[] = [
-  'link',
   'upload',
+  'link',
   // 'giphy',
   // 'emoji',
   // 'unsplash',
@@ -45,6 +48,8 @@ export const ImageUploadContent = ({
   onClose,
   initialTab,
   linkWithVariableButton,
+  acceptedFileTypes,
+  maxUploadFileSizeInMB,
   ...props
 }: Props) => {
   const includedTabs =
@@ -60,7 +65,10 @@ export const ImageUploadContent = ({
     initialTab ?? displayedTabs[0]
   )
 
+  const [previewUrl, setPreviewUrl] = useState(defaultUrl)
+
   const handleSubmit = (url: string) => {
+    setPreviewUrl(url)
     onSubmit(url)
     onClose && onClose()
   }
@@ -68,15 +76,6 @@ export const ImageUploadContent = ({
   return (
     <Stack>
       <HStack>
-        {displayedTabs.includes('link') && (
-          <Button
-            variant={currentTab === 'link' ? 'solid' : 'ghost'}
-            onClick={() => setCurrentTab('link')}
-            size="sm"
-          >
-            Link
-          </Button>
-        )}
         {displayedTabs.includes('upload') && (
           <Button
             variant={currentTab === 'upload' ? 'solid' : 'ghost'}
@@ -84,6 +83,15 @@ export const ImageUploadContent = ({
             size="sm"
           >
             Upload
+          </Button>
+        )}
+        {displayedTabs.includes('link') && (
+          <Button
+            variant={currentTab === 'link' ? 'solid' : 'ghost'}
+            onClick={() => setCurrentTab('link')}
+            size="sm"
+          >
+            Link
           </Button>
         )}
         {displayedTabs.includes('emoji') && (
@@ -131,10 +139,21 @@ export const ImageUploadContent = ({
         onSubmit={handleSubmit}
         defaultUrl={defaultUrl}
         linkWithVariableButton={linkWithVariableButton}
+        acceptedFileTypes={acceptedFileTypes}
+        maxUploadFileSizeInMB={maxUploadFileSizeInMB}
       />
+
+      {(currentTab === 'upload' || currentTab === 'link') &&
+        isPreviewableUrl(previewUrl) && (
+          <ImagePreview url={previewUrl} maxH="200px" mx="auto" />
+        )}
     </Stack>
   )
 }
+
+const isPreviewableUrl = (url: string | undefined): url is string =>
+  !!url &&
+  (url.startsWith('http') || (url.includes('{{') && url.includes('}}')))
 
 const BodyContent = ({
   uploadFileProps,
@@ -142,6 +161,8 @@ const BodyContent = ({
   defaultUrl,
   imageSize,
   linkWithVariableButton,
+  acceptedFileTypes,
+  maxUploadFileSizeInMB,
   onSubmit,
 }: {
   uploadFileProps?: FilePathUploadProps
@@ -149,6 +170,8 @@ const BodyContent = ({
   defaultUrl?: string
   imageSize: 'small' | 'regular' | 'thumb'
   linkWithVariableButton?: boolean
+  acceptedFileTypes?: string[]
+  maxUploadFileSizeInMB?: number
   onSubmit: (url: string) => void
 }) => {
   switch (tab) {
@@ -158,6 +181,8 @@ const BodyContent = ({
         <UploadFileContent
           uploadFileProps={uploadFileProps}
           onNewUrl={onSubmit}
+          acceptedFileTypes={acceptedFileTypes}
+          maxSizeInMB={maxUploadFileSizeInMB}
         />
       )
     }
@@ -185,7 +210,13 @@ type ContentProps = { onNewUrl: (url: string) => void }
 const UploadFileContent = ({
   uploadFileProps,
   onNewUrl,
-}: ContentProps & { uploadFileProps: FilePathUploadProps }) => {
+  acceptedFileTypes,
+  maxSizeInMB,
+}: ContentProps & {
+  uploadFileProps: FilePathUploadProps
+  acceptedFileTypes?: string[]
+  maxSizeInMB?: number
+}) => {
   const { t } = useTranslate()
 
   return (
@@ -194,6 +225,8 @@ const UploadFileContent = ({
         fileType="image"
         filePathProps={uploadFileProps}
         onFileUploaded={onNewUrl}
+        acceptedFileTypes={acceptedFileTypes}
+        maxSizeInMB={maxSizeInMB}
         colorScheme="orange"
       >
         {t('editor.header.uploadTab.uploadButton.label')}

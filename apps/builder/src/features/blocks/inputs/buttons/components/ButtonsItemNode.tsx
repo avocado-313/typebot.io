@@ -16,7 +16,16 @@ import {
 } from '@chakra-ui/react'
 import { PlusIcon, SettingsIcon } from '@/components/icons'
 import { useTypebot } from '@/features/editor/providers/TypebotProvider'
-import { ButtonItem, Item, ItemIndices } from '@typebot.io/schemas'
+import {
+  ButtonItem,
+  ChoiceInputBlock,
+  Item,
+  ItemIndices,
+} from '@typebot.io/schemas'
+import {
+  interactiveButtonType,
+  interactiveLimits,
+} from '@typebot.io/schemas/features/blocks/inputs/choice/constants'
 import React, { useRef, useState } from 'react'
 import { isEmpty } from '@typebot.io/lib'
 import { useGraph } from '@/features/graph/providers/GraphProvider'
@@ -32,7 +41,7 @@ type Props = {
 
 export const ButtonsItemNode = ({ item, indices, isMouseOver }: Props) => {
   const { t } = useTranslate()
-  const { deleteItem, updateItem, createItem } = useTypebot()
+  const { typebot, deleteItem, updateItem, createItem } = useTypebot()
   const { openedItemId, setOpenedItemId } = useGraph()
   const [itemValue, setItemValue] = useState(
     item.content ??
@@ -43,6 +52,14 @@ export const ButtonsItemNode = ({ item, indices, isMouseOver }: Props) => {
   const editableRef = useRef<HTMLDivElement | null>(null)
   const ref = useRef<HTMLDivElement | null>(null)
   const arrowColor = useColorModeValue('white', 'gray.800')
+  const block = typebot?.groups
+    .at(indices.groupIndex)
+    ?.blocks.at(indices.blockIndex) as ChoiceInputBlock | undefined
+  const limits =
+    interactiveLimits[
+      block?.options?.interactiveButtonType ?? interactiveButtonType.REPLY
+    ]
+  const isAtItemLimit = (block?.items.length ?? 0) >= limits.maxItems
 
   const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation()
 
@@ -71,7 +88,11 @@ export const ButtonsItemNode = ({ item, indices, isMouseOver }: Props) => {
 
   const handleEditableChange = (val: string) => {
     if (itemValue !== '') return setItemValue(val)
-    const values = convertStrToList(val)
+    // Pasting a list creates one item per line; this item already counts.
+    const values = convertStrToList(val).slice(
+      0,
+      limits.maxItems - (block?.items.length ?? 1) + 1
+    )
     if (values.length === 1) {
       setItemValue(values[0])
     } else {
@@ -85,6 +106,7 @@ export const ButtonsItemNode = ({ item, indices, isMouseOver }: Props) => {
   }
 
   const handlePlusClick = () => {
+    if (isAtItemLimit) return
     const itemIndex = indices.itemIndex + 1
     createItem({}, { ...indices, itemIndex })
   }
@@ -125,6 +147,7 @@ export const ButtonsItemNode = ({ item, indices, isMouseOver }: Props) => {
               cursor="pointer"
             />
             <EditableTextarea
+              maxLength={limits.itemLabelMaxLength}
               onMouseDownCapture={(e) => e.stopPropagation()}
               resize="none"
               onWheelCapture={(e) => e.stopPropagation()}
@@ -154,7 +177,7 @@ export const ButtonsItemNode = ({ item, indices, isMouseOver }: Props) => {
             </Flex>
           </SlideFade>
           <Fade
-            in={isMouseOver}
+            in={isMouseOver && !isAtItemLimit}
             style={{
               position: 'absolute',
               bottom: '-15px',

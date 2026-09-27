@@ -28,6 +28,7 @@ type Props = {
   helperText?: ReactNode
   onChange: (value: string) => void
   direction?: 'row' | 'column'
+  maxLength?: number
 } & Pick<TextareaProps, 'minH' | 'width'>
 
 export const Textarea = ({
@@ -44,6 +45,7 @@ export const Textarea = ({
   helperText,
   direction = 'column',
   width,
+  maxLength,
 }: Props) => {
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const [isTouched, setIsTouched] = useState(false)
@@ -101,6 +103,7 @@ export const Textarea = ({
       onChange={(e) => changeValue(e.target.value)}
       placeholder={placeholder}
       minH={minH ?? '150px'}
+      maxLength={maxLength}
     />
   )
 
@@ -127,6 +130,11 @@ export const Textarea = ({
         </HStack>
       ) : (
         Textarea
+      )}
+      {maxLength !== undefined && (
+        <FormHelperText mt="0">
+          {localValue.length.toLocaleString()} / {maxLength.toLocaleString()}
+        </FormHelperText>
       )}
       {helperText && <FormHelperText mt="0">{helperText}</FormHelperText>}
     </FormControl>
