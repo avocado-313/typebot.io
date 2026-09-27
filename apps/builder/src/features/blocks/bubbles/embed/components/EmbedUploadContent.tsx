@@ -57,7 +57,7 @@ export const EmbedUploadContent = ({
     onSubmit({
       ...content,
       url,
-      fileName: content?.fileName ?? fileName,
+      fileName,
     })
   }
 
