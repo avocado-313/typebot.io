@@ -187,7 +187,7 @@ export const updateTypebot = authenticatedProcedure
     // above) so a bot already over a newly-applied limit keeps saving normally as
     // long as the save doesn't grow the count or introduce a new instance of a
     // now-locked block type — this is what "existing flows keep working" requires.
-    if (groups && !isBackupWorkspace) {
+    if (groups) {
       const previousGroups =
         (existingTypebot.groups as
           | { blocks: { id: string; type: string }[] }[]
