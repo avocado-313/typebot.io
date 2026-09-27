@@ -23,12 +23,16 @@ const parseAllowedBlockTypes = (value: unknown, planKey: string): string[] => {
 
 // The component cap is the Hub's per-business typebot limit (/item/:ws/typbot —
 // plan default or billing override), not PlanComponentConfig.maxComponents, so
-// billing stays the single source of truth. Same fail-open contract: a Hub error
-// or an excluded workspace means no cap.
+// billing stays the single source of truth. Read-only (no max_no_components), so
+// loading the editor never writes billing overrides. Same fail-open contract: a
+// Hub error (e.g. an old-plan business with no override yet) or an excluded
+// workspace means no cap.
 const getHubMaxComponents = async (
   workspaceId: string
 ): Promise<number | null> => {
-  const { maxGroups, error } = await checkGroupLimits(workspaceId)
+  const { maxGroups, error } = await checkGroupLimits(workspaceId, {
+    readOnly: true,
+  })
   if (error || !Number.isFinite(maxGroups) || maxGroups <= 0) {
     if (error)
       console.warn(

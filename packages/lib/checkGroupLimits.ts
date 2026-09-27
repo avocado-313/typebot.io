@@ -11,8 +11,11 @@ export const isWorkspaceExcludedFromGroupsLimit = (
   env.NEXT_PUBLIC_GROUPS_LIMIT_EXCLUDED_WORKSPACE_IDS?.includes(workspaceId) ??
   false
 
+// readOnly omits max_no_components: with it, the Hub upserts a billing override
+// (free_units = N) for old-plan businesses, so a read-only caller must not send it.
 export const checkGroupLimits = async (
-  workspaceId: string
+  workspaceId: string,
+  { readOnly = false }: { readOnly?: boolean } = {}
 ): Promise<GroupLimitResponse> => {
   if (isWorkspaceExcludedFromGroupsLimit(workspaceId)) {
     return { maxGroups: Infinity }
@@ -23,7 +26,7 @@ export const checkGroupLimits = async (
     const hubUrl = env.NEXT_PUBLIC_HUB_URL || 'https://bot.avocad0.dev'
 
     const baseUrl = `${hubUrl}/api/v1/item/${workspaceId}/typbot`
-    const shouldSendMax = Number.isFinite(maxGroupsNumber)
+    const shouldSendMax = !readOnly && Number.isFinite(maxGroupsNumber)
     const requestUrl = shouldSendMax
       ? `${baseUrl}?max_no_components=${maxGroupsNumber}`
       : baseUrl
