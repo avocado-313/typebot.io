@@ -9,4 +9,5 @@ sleep 15;
 
 ./node_modules/.bin/prisma migrate deploy --schema=packages/prisma/postgresql/schema.prisma;
 
-NODE_OPTIONS=--no-node-snapshot HOSTNAME=0.0.0.0 PORT=3000 node apps/builder/server.js;
+# Same as the viewer: exec so node gets SIGTERM; keep the pod's NODE_OPTIONS.
+NODE_OPTIONS="--no-node-snapshot ${NODE_OPTIONS:-}" HOSTNAME=0.0.0.0 PORT=3000 exec node apps/builder/server.js

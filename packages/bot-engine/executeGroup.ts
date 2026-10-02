@@ -34,8 +34,17 @@ import {
 } from './parseBubbleBlock'
 import { BubbleBlockType } from '@typebot.io/schemas/features/blocks/bubbles/constants'
 
+// A flow that cycles between groups without reaching an input block made
+// executeGroup recurse forever: one contact's message grew the viewer's heap
+// until the pod died (exit 134), and the caller's retries took down the next
+// pod the same way (prod, 2026-10-01: both viewer pods, every few hours).
+// Past this many groups in one reply the flow is looping, so stop it.
+const MAX_CHAINED_GROUPS = 300
+
 type ContextProps = {
   version: 1 | 2
+  // Groups already executed in this reply without waiting for input.
+  chainedGroups?: number
   state: SessionState
   currentReply?: ContinueChatResponse
   currentLastBubbleId?: string
@@ -58,6 +67,7 @@ export const executeGroup = async (
     firstBubbleWasStreamed,
     startTime,
     textBubbleContentFormat,
+    chainedGroups = 0,
   }: ContextProps
 ): Promise<
   ContinueChatResponse & {
@@ -66,6 +76,16 @@ export const executeGroup = async (
     visitedEdges: VisitedEdge[]
   }
 > => {
+  if (chainedGroups >= MAX_CHAINED_GROUPS) {
+    // Ids only: never variable values (they hold the contact's data).
+    console.warn(
+      `executeGroup: flow loop stopped after ${MAX_CHAINED_GROUPS} groups without input (typebot ${state.typebotsQueue[0]?.typebot.id}, group ${group.id})`
+    )
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `The flow ran ${MAX_CHAINED_GROUPS} groups without waiting for an answer: it loops between groups (group ${group.id}).`,
+    })
+  }
   let newStartTime = startTime
   const messages: ContinueChatResponse['messages'] =
     currentReply?.messages ?? []
@@ -287,6 +307,7 @@ export const executeGroup = async (
     currentLastBubbleId: lastBubbleBlockId,
     startTime: newStartTime,
     textBubbleContentFormat,
+    chainedGroups: chainedGroups + 1,
   })
 }
 
