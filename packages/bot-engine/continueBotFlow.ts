@@ -74,13 +74,6 @@ export const continueBotFlow = async (
   const visitedEdges: VisitedEdge[] = []
   const setVariableHistory: SetVariableHistoryItem[] = []
 
-  if (reply?.type === 'location') {
-    console.log(
-      '[AVC-DEBUG] continueBotFlow: location message received =',
-      JSON.stringify(reply)
-    )
-  }
-
   if (!newSessionState.currentBlockId)
     return startBotFlow({
       state: resetSessionState(newSessionState),
@@ -446,13 +439,6 @@ const saveInputVarIfAny = ({
   )
   if (!foundVariable) return state
 
-  if (reply.type === 'location') {
-    console.log(
-      '[AVC-DEBUG] saveInputVarIfAny: location reply received =',
-      JSON.stringify(reply)
-    )
-  }
-
   // For a location reply, persist the full structured object (coordinates,
   // maps link, address, name) instead of only the plain text address. It is
   // serialized to JSON by updateVariablesInSession, so the variable resolves
@@ -460,12 +446,6 @@ const saveInputVarIfAny = ({
   const replyValue =
     reply.type === 'location' ? buildLocationVariableValue(reply) : reply.text
 
-  if (reply.type === 'location') {
-    console.log(
-      `[AVC-DEBUG] saveInputVarIfAny: setting variable "${foundVariable.name}" (id=${foundVariable.id}) =`,
-      JSON.stringify(replyValue)
-    )
-  }
 
   const { updatedState } = updateVariablesInSession({
     newVariables: [
