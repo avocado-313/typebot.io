@@ -6,7 +6,10 @@ import {
   notAuthenticated,
 } from '@typebot.io/lib/api'
 import { generatePresignedPostPolicy } from '@typebot.io/lib/s3/generatePresignedPostPolicy'
-import { env } from '@typebot.io/env'
+import {
+  isStorageConfigured,
+  storageNotConfiguredMessage,
+} from '@typebot.io/lib/s3/isStorageConfigured'
 
 const handler = async (
   req: NextApiRequest,
@@ -17,11 +20,8 @@ const handler = async (
     const user = await getAuthenticatedUser(req, res)
     if (!user) return notAuthenticated(res)
 
-    if (!env.S3_ENDPOINT || !env.S3_ACCESS_KEY || !env.S3_SECRET_KEY)
-      return badRequest(
-        res,
-        'S3 not properly configured. Missing one of those variables: S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY'
-      )
+    if (!isStorageConfigured())
+      return badRequest(res, storageNotConfiguredMessage)
     const filePath = req.query.filePath as string | undefined
     const fileType = req.query.fileType as string | undefined
     if (!filePath || !fileType) return badRequest(res)

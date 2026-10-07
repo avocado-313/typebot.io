@@ -1,5 +1,6 @@
 import { env } from '@typebot.io/env'
 import { Client } from 'minio'
+import { getGcsFile, isGcsEnabled } from '../gcs'
 
 type GeneratePresignedUrlProps = {
   filePath: string
@@ -12,6 +13,16 @@ export const generatePresignedUrl = async ({
   filePath,
   fileType,
 }: GeneratePresignedUrlProps): Promise<string> => {
+  if (isGcsEnabled()) {
+    const [url] = await getGcsFile(filePath).getSignedUrl({
+      version: 'v4',
+      action: 'write',
+      expires: Date.now() + tenMinutes * 1000,
+      contentType: fileType,
+    })
+    return url
+  }
+
   if (!env.S3_ENDPOINT || !env.S3_ACCESS_KEY || !env.S3_SECRET_KEY)
     throw new Error(
       'S3 not properly configured. Missing one of those variables: S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY'

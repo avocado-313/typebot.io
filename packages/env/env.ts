@@ -279,6 +279,10 @@ const s3Env = {
     S3_SSL: boolean.optional().default('true'),
     S3_REGION: z.string().min(1).optional(),
     S3_PUBLIC_CUSTOM_DOMAIN: z.string().url().optional(),
+    GCS_BUCKET: z.string().min(1).optional(),
+    GCS_PUBLIC_BUCKET: z.string().min(1).optional(),
+    GCS_PUBLIC_URL: z.string().url().optional(),
+    GCP_MEDIA_SA_KEY: z.string().min(1).optional(),
   },
 }
 

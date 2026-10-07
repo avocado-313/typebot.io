@@ -71,6 +71,7 @@ const nextConfig = {
     if (isServer) return config
 
     config.resolve.alias['minio'] = false
+    config.resolve.alias['@google-cloud/storage'] = false
     config.resolve.alias['qrcode'] = false
     config.resolve.alias['isolated-vm'] = false
     return config

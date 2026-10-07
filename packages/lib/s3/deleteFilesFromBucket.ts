@@ -1,11 +1,28 @@
 import { env } from '@typebot.io/env'
 import { Client } from 'minio'
+import {
+  getGcsBucketName,
+  getGcsFile,
+  getGcsPublicBaseUrl,
+  isGcsEnabled,
+} from './gcs'
 
 export const deleteFilesFromBucket = async ({
   urls,
 }: {
   urls: string[]
 }): Promise<void> => {
+  if (isGcsEnabled()) {
+    // GCS has no multi-object delete, so delete one by one.
+    await Promise.all(
+      urls
+        .map(getGcsKeyFromUrl)
+        .filter((key): key is string => Boolean(key))
+        .map((key) => getGcsFile(key).delete({ ignoreNotFound: true }))
+    )
+    return
+  }
+
   if (!env.S3_ENDPOINT || !env.S3_ACCESS_KEY || !env.S3_SECRET_KEY)
     throw new Error(
       'S3 not properly configured. Missing one of those variables: S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY'
@@ -41,3 +58,13 @@ const addKeyIfIncludesPublicCustomDomain = (url: string) =>
 
 const addKeyIfIncludesDefaultEndpoint = (url: string, bucket: string) =>
   url.includes(env.S3_ENDPOINT as string) ? [url.split(`/${bucket}/`)[1]] : []
+
+const getGcsKeyFromUrl = (url: string) => {
+  const bases = [
+    getGcsPublicBaseUrl(),
+    `https://storage.googleapis.com/${getGcsBucketName('public/')}`,
+    `https://storage.googleapis.com/${getGcsBucketName('private/')}`,
+  ]
+  const base = bases.find((base) => url.startsWith(base + '/'))
+  return base ? url.slice(base.length + 1).split('?')[0] : undefined
+}

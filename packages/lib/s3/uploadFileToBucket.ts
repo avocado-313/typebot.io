@@ -1,4 +1,5 @@
 import { getPublicFileUrl } from './getPublicFileUrl'
+import { getGcsFile, isGcsEnabled } from './gcs'
 import { env } from '@typebot.io/env'
 import { Client } from 'minio'
 
@@ -13,6 +14,15 @@ export const uploadFileToBucket = async ({
   file,
   mimeType,
 }: Props): Promise<string> => {
+  if (isGcsEnabled()) {
+    await getGcsFile('public/' + key).save(file, {
+      resumable: false,
+      contentType: mimeType,
+      metadata: { cacheControl: 'public, max-age=86400' },
+    })
+    return getPublicFileUrl('public/' + key)
+  }
+
   if (!env.S3_ENDPOINT || !env.S3_ACCESS_KEY || !env.S3_SECRET_KEY)
     throw new Error(
       'S3 not properly configured. Missing one of those variables: S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY'

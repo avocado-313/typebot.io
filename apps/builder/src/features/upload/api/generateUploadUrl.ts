@@ -1,6 +1,9 @@
 import { authenticatedProcedure } from '@/helpers/server/trpc'
 import { z } from 'zod'
-import { env } from '@typebot.io/env'
+import {
+  isStorageConfigured,
+  storageNotConfiguredMessage,
+} from '@typebot.io/lib/s3/isStorageConfigured'
 import { TRPCError } from '@trpc/server'
 import { generatePresignedPostPolicy } from '@typebot.io/lib/s3/generatePresignedPostPolicy'
 import { getPublicFileUrl } from '@typebot.io/lib/s3/getPublicFileUrl'
@@ -50,11 +53,10 @@ export const generateUploadUrl = authenticatedProcedure
       input: { filePathProps, fileType, maxFileSize },
       ctx: { user },
     }) => {
-      if (!env.S3_ENDPOINT || !env.S3_ACCESS_KEY || !env.S3_SECRET_KEY)
+      if (!isStorageConfigured())
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message:
-            'S3 not properly configured. Missing one of those variables: S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY',
+          message: storageNotConfiguredMessage,
         })
 
       if ('resultId' in filePathProps && !user)
