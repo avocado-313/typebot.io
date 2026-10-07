@@ -1,11 +1,26 @@
 import { env } from '@typebot.io/env'
 import { Client } from 'minio'
+import { getGcsBucket, isGcsEnabled } from './gcs'
 
 type Props = {
   folderPath: string
 }
 
 export const getFolderSize = async ({ folderPath }: Props) => {
+  if (isGcsEnabled()) {
+    const prefix = 'public/' + folderPath
+    return new Promise<number>((resolve, reject) => {
+      let totalSize = 0
+      getGcsBucket(prefix)
+        .getFilesStream({ prefix })
+        .on('data', (file) => {
+          totalSize += Number(file.metadata.size ?? 0)
+        })
+        .on('error', reject)
+        .on('end', () => resolve(totalSize))
+    })
+  }
+
   if (!env.S3_ENDPOINT || !env.S3_ACCESS_KEY || !env.S3_SECRET_KEY)
     throw new Error(
       'S3 not properly configured. Missing one of those variables: S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY'

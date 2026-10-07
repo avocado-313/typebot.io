@@ -9,7 +9,10 @@ import {
 import { byId, isDefined } from '@typebot.io/lib'
 import { z } from 'zod'
 import { generatePresignedUrl } from '@typebot.io/lib/s3/deprecated/generatePresignedUrl'
-import { env } from '@typebot.io/env'
+import {
+  isStorageConfigured,
+  storageNotConfiguredMessage,
+} from '@typebot.io/lib/s3/isStorageConfigured'
 import prisma from '@typebot.io/lib/prisma'
 import { InputBlockType } from '@typebot.io/schemas/features/blocks/inputs/constants'
 import { LogicBlockType } from '@typebot.io/schemas/features/blocks/logic/constants'
@@ -41,11 +44,10 @@ export const getUploadUrl = publicProcedure
     })
   )
   .query(async ({ input: { typebotId, blockId, filePath, fileType } }) => {
-    if (!env.S3_ENDPOINT || !env.S3_ACCESS_KEY || !env.S3_SECRET_KEY)
+    if (!isStorageConfigured())
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message:
-          'S3 not properly configured. Missing one of those variables: S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY',
+        message: storageNotConfiguredMessage,
       })
 
     const publicTypebot = await prisma.publicTypebot.findFirst({
