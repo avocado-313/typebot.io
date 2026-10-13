@@ -24,7 +24,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { Variable } from '@typebot.io/schemas'
 import React, { useState, useRef, ChangeEvent, ReactNode } from 'react'
 import { byId, isDefined, isNotDefined } from '@typebot.io/lib'
-import { isMessageBodyVariable } from '@typebot.io/variables/messageBodyVariable'
+import { isBuiltInVariable } from '@typebot.io/variables/builtInVariables'
 import { useOutsideClick } from '@/hooks/useOutsideClick'
 import { useParentModal } from '@/features/graph/providers/ParentModalProvider'
 import { MoreInfoTooltip } from '../MoreInfoTooltip'
@@ -298,7 +298,7 @@ export const VariableSearchInput = ({
                           {item.name}
                         </Text>
 
-                        {!isMessageBodyVariable(item) && (
+                        {!isBuiltInVariable(item) && (
                           <HStack>
                             <IconButton
                               icon={<EditIcon />}

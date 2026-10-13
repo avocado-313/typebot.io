@@ -30,7 +30,10 @@ import { startBotFlow } from './startBotFlow'
 import { prefillVariables } from '@typebot.io/variables/prefillVariables'
 import { deepParseVariables } from '@typebot.io/variables/deepParseVariables'
 import { injectVariablesFromExistingResult } from '@typebot.io/variables/injectVariablesFromExistingResult'
-import { setMessageBodyVariable } from '@typebot.io/variables/messageBodyVariable'
+import {
+  ensureBuiltInVariables,
+  setMessageBodyVariable,
+} from '@typebot.io/variables/builtInVariables'
 import { getNextGroup } from './getNextGroup'
 import { upsertResult } from './queries/upsertResult'
 import { continueBotFlow } from './continueBotFlow'
@@ -89,9 +92,11 @@ export const startSession = async ({
 > => {
   const typebot = await getTypebot(startParams)
 
+  // Built-ins must exist before prefilling, which only fills known variables
+  const typebotVariables = ensureBuiltInVariables(typebot.variables)
   const prefilledVariables = startParams.prefilledVariables
-    ? prefillVariables(typebot.variables, startParams.prefilledVariables)
-    : typebot.variables
+    ? prefillVariables(typebotVariables, startParams.prefilledVariables)
+    : typebotVariables
 
   const result = await getResult({
     resultId: startParams.type === 'live' ? startParams.resultId : undefined,
