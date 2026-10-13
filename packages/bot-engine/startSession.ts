@@ -30,6 +30,7 @@ import { startBotFlow } from './startBotFlow'
 import { prefillVariables } from '@typebot.io/variables/prefillVariables'
 import { deepParseVariables } from '@typebot.io/variables/deepParseVariables'
 import { injectVariablesFromExistingResult } from '@typebot.io/variables/injectVariablesFromExistingResult'
+import { setMessageBodyVariable } from '@typebot.io/variables/messageBodyVariable'
 import { getNextGroup } from './getNextGroup'
 import { upsertResult } from './queries/upsertResult'
 import { continueBotFlow } from './continueBotFlow'
@@ -104,10 +105,12 @@ export const startSession = async ({
         : defaultSettings.general.rememberUser.isEnabled),
   })
 
-  const startVariables =
+  const startVariables = setMessageBodyVariable(
     result && result.variables.length > 0
       ? injectVariablesFromExistingResult(prefilledVariables, result.variables)
-      : prefilledVariables
+      : prefilledVariables,
+    startParams.message?.messageBody
+  )
 
   const typebotInSession = convertStartTypebotToTypebotInSession(
     typebot,

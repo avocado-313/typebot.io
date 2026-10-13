@@ -18,6 +18,7 @@ import {
   SlideFade,
 } from '@chakra-ui/react'
 import { useTypebot } from '../../editor/providers/TypebotProvider'
+import { isMessageBodyVariable } from '@typebot.io/variables/messageBodyVariable'
 import { FormEvent, useState } from 'react'
 import { headerHeight } from '../../editor/constants'
 import { useDrag } from '@use-gesture/react'
@@ -176,11 +177,14 @@ const VariableItem = ({
     (b) => isInputBlock(b) && b.options?.variableId === variable.id
   )
 
+  const isBuiltIn = isMessageBodyVariable(variable)
+
   return (
     <HStack justifyContent="space-between">
       <Editable
         defaultValue={variable.name}
         onSubmit={(name) => onChange({ name })}
+        isDisabled={isBuiltIn}
       >
         <EditablePreview
           px="2"
@@ -220,12 +224,14 @@ const VariableItem = ({
             </PopoverContent>
           </Popover>
         )}
-        <IconButton
-          icon={<TrashIcon />}
-          onClick={onDelete}
-          aria-label="Delete"
-          size="sm"
-        />
+        {!isBuiltIn && (
+          <IconButton
+            icon={<TrashIcon />}
+            onClick={onDelete}
+            aria-label="Delete"
+            size="sm"
+          />
+        )}
       </HStack>
     </HStack>
   )
