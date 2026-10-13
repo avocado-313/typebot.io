@@ -1,4 +1,6 @@
+import { safeStringify } from '@typebot.io/lib/safeStringify'
 import { Variable } from './types'
+import { getVariableValueAtPath } from './parseVariables'
 
 export const findUniqueVariableValue =
   (variables: Variable[]) =>
@@ -8,5 +10,9 @@ export const findUniqueVariableValue =
     const variable = variables.find(
       (variable) => variable.name === variableName
     )
-    return variable?.value ?? null
+    if (variable) return variable.value ?? null
+    const pathValue = getVariableValueAtPath(variables, variableName)?.value
+    return Array.isArray(pathValue)
+      ? pathValue.map(safeStringify)
+      : safeStringify(pathValue)
   }
