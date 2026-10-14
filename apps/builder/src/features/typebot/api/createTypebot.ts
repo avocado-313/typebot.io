@@ -174,9 +174,10 @@ export const createTypebot = authenticatedProcedure
               }
             : {},
           folderId: typebot.folderId,
-          variables: typebot.variables
-            ? sanitizeVariables({ variables: typebot.variables, groups })
-            : [],
+          variables: sanitizeVariables({
+            variables: typebot.variables ?? [],
+            groups,
+          }),
           edges: typebot.edges ?? [],
           resultsTablePreferences: typebot.resultsTablePreferences ?? undefined,
           publicId: typebot.publicId ?? undefined,
