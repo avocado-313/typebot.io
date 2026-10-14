@@ -18,7 +18,7 @@ import {
   SlideFade,
 } from '@chakra-ui/react'
 import { useTypebot } from '../../editor/providers/TypebotProvider'
-import { isMessageBodyVariable } from '@typebot.io/variables/messageBodyVariable'
+import { isBuiltInVariable } from '@typebot.io/variables/builtInVariables'
 import { FormEvent, useState } from 'react'
 import { headerHeight } from '../../editor/constants'
 import { useDrag } from '@use-gesture/react'
@@ -177,7 +177,7 @@ const VariableItem = ({
     (b) => isInputBlock(b) && b.options?.variableId === variable.id
   )
 
-  const isBuiltIn = isMessageBodyVariable(variable)
+  const isBuiltIn = isBuiltInVariable(variable)
 
   return (
     <HStack justifyContent="space-between">
