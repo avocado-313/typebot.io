@@ -7,6 +7,7 @@ import { defaultSendEmailOptions } from '@typebot.io/schemas/features/blocks/int
 import { LogicBlockType } from '@typebot.io/schemas/features/blocks/logic/constants'
 import { sessionOnlySetVariableOptions } from '@typebot.io/schemas/features/blocks/logic/setVariable/constants'
 import { isInputBlock } from '@typebot.io/schemas/helpers'
+import { ensureBuiltInVariables } from '@typebot.io/variables/builtInVariables'
 
 export const sanitizeSettings = (
   settings: Typebot['settings'],
@@ -171,7 +172,7 @@ export const sanitizeVariables = ({
   const blocks = groups
     .flatMap((group) => group.blocks as Block[])
     .filter((b) => isInputBlock(b) || b.type === LogicBlockType.SET_VARIABLE)
-  return variables.map((variable) => {
+  return ensureBuiltInVariables(variables).map((variable) => {
     if (variable.isSessionVariable) return variable
     const isVariableLinkedToInputBlock = blocks.some(
       (block) =>

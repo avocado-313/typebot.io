@@ -30,6 +30,7 @@ import { validateRatingReply } from './blocks/inputs/rating/validateRatingReply'
 import { parsePictureChoicesReply } from './blocks/inputs/pictureChoice/parsePictureChoicesReply'
 import { parseVariables } from '@typebot.io/variables/parseVariables'
 import { updateVariablesInSession } from '@typebot.io/variables/updateVariablesInSession'
+import { setMessageBodyVariable } from '@typebot.io/variables/builtInVariables'
 import { startBotFlow } from './startBotFlow'
 import { TRPCError } from '@trpc/server'
 import { parseNumber } from './blocks/inputs/number/parseNumber'
@@ -61,7 +62,12 @@ type Params = {
 }
 export const continueBotFlow = async (
   reply: Reply,
-  { state, version, startTime, textBubbleContentFormat }: Params
+  {
+    state: stateBeforeReply,
+    version,
+    startTime,
+    textBubbleContentFormat,
+  }: Params
 ): Promise<
   ContinueChatResponse & {
     newSessionState: SessionState
@@ -69,6 +75,7 @@ export const continueBotFlow = async (
     setVariableHistory: SetVariableHistoryItem[]
   }
 > => {
+  const state = setMessageBodyInState(stateBeforeReply, reply)
   let firstBubbleWasStreamed = false
   let newSessionState = { ...state }
   const visitedEdges: VisitedEdge[] = []
@@ -76,7 +83,8 @@ export const continueBotFlow = async (
 
   if (!newSessionState.currentBlockId)
     return startBotFlow({
-      state: resetSessionState(newSessionState),
+      // The reset clears every variable, so message_body is set again after it
+      state: setMessageBodyInState(resetSessionState(newSessionState), reply),
       version,
       textBubbleContentFormat,
     })
@@ -364,6 +372,30 @@ export const continueBotFlow = async (
     ...chatReply,
     lastMessageNewFormat:
       formattedReply !== reply?.text ? formattedReply : undefined,
+  }
+}
+
+const setMessageBodyInState = (
+  state: SessionState,
+  reply: Reply
+): SessionState => {
+  if (!reply?.messageBody) return state
+  return {
+    ...state,
+    typebotsQueue: state.typebotsQueue.map((typebotInQueue, index) =>
+      index === 0
+        ? {
+            ...typebotInQueue,
+            typebot: {
+              ...typebotInQueue.typebot,
+              variables: setMessageBodyVariable(
+                typebotInQueue.typebot.variables,
+                reply.messageBody
+              ),
+            },
+          }
+        : typebotInQueue
+    ),
   }
 }
 

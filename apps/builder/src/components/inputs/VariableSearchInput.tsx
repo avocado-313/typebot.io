@@ -24,6 +24,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { Variable } from '@typebot.io/schemas'
 import React, { useState, useRef, ChangeEvent, ReactNode } from 'react'
 import { byId, isDefined, isNotDefined } from '@typebot.io/lib'
+import { isBuiltInVariable } from '@typebot.io/variables/builtInVariables'
 import { useOutsideClick } from '@/hooks/useOutsideClick'
 import { useParentModal } from '@/features/graph/providers/ParentModalProvider'
 import { MoreInfoTooltip } from '../MoreInfoTooltip'
@@ -297,20 +298,22 @@ export const VariableSearchInput = ({
                           {item.name}
                         </Text>
 
-                        <HStack>
-                          <IconButton
-                            icon={<EditIcon />}
-                            aria-label={t('variables.rename')}
-                            size="xs"
-                            onClick={handleRenameVariableClick(item)}
-                          />
-                          <IconButton
-                            icon={<TrashIcon />}
-                            aria-label={t('variables.remove')}
-                            size="xs"
-                            onClick={handleDeleteVariableClick(item)}
-                          />
-                        </HStack>
+                        {!isBuiltInVariable(item) && (
+                          <HStack>
+                            <IconButton
+                              icon={<EditIcon />}
+                              aria-label={t('variables.rename')}
+                              size="xs"
+                              onClick={handleRenameVariableClick(item)}
+                            />
+                            <IconButton
+                              icon={<TrashIcon />}
+                              aria-label={t('variables.remove')}
+                              size="xs"
+                              onClick={handleDeleteVariableClick(item)}
+                            />
+                          </HStack>
+                        )}
                       </Button>
                     )
                   })}
