@@ -1,5 +1,5 @@
 import { safeStringify } from '@typebot.io/lib/safeStringify'
-import { isDefined, isNotDefined } from '@typebot.io/lib/utils'
+import { getAtPath, isDefined, isNotDefined } from '@typebot.io/lib/utils'
 import { Variable, VariableWithValue } from './types'
 import { createCodeRunner } from './codeRunners'
 
@@ -49,9 +49,18 @@ export const parseVariables =
             (options.fieldToParse === 'id' || isDefined(variable.value))
           )
         }) as VariableWithValue | undefined
-        if (!variable) return dollarSign + ''
-        if (options.fieldToParse === 'id') return dollarSign + variable.id
-        const { value } = variable
+        if (variable && options.fieldToParse === 'id')
+          return dollarSign + variable.id
+        const pathValue = variable
+          ? undefined
+          : getVariableValueAtPath(variables, matchedVarName)
+        if (!variable && !pathValue) return dollarSign + ''
+        // Code is evaluated with variables passed by id, which can't carry a
+        // path, so the resolved value is inlined as a JS literal instead.
+        if (options.fieldToParse === 'id')
+          return dollarSign + (JSON.stringify(pathValue?.value) ?? 'undefined')
+        const value = variable ? variable.value : pathValue?.value
+        if (isNotDefined(value)) return dollarSign + ''
         if (options.isInsideJson)
           return dollarSign + parseVariableValueInJson(value)
         const parsedValue =
@@ -129,15 +138,18 @@ export const getVariablesToParseInfoInText = (
     const variable = variables.find((variable) => {
       return matchedVarName === variable.name
     }) as VariableWithValue | undefined
+    const value = variable
+      ? variable.value
+      : getVariableValueAtPath(variables, matchedVarName)?.value
     variablesToParseInfo.push({
       startIndex: match.index,
       endIndex: match.index + match[0].length,
       textToReplace: match[0],
       value:
         safeStringify(
-          takeLatestIfList && Array.isArray(variable?.value)
-            ? variable?.value[variable?.value.length - 1]
-            : variable?.value
+          takeLatestIfList && Array.isArray(value)
+            ? value[value.length - 1]
+            : value
         ) ?? '',
       variableId: variable?.id,
     })
@@ -145,7 +157,32 @@ export const getVariablesToParseInfoInText = (
   return variablesToParseInfo.sort((a, b) => a.startIndex - b.startIndex)
 }
 
-const parseVariableValueInJson = (value: VariableWithValue['value']) => {
+// Resolves `{{name.path.to.field}}` when `name` holds a JSON value, e.g.
+// `{{message_body.text.body}}`. Returns undefined if there is no `name` variable.
+export const getVariableValueAtPath = (
+  variables: Variable[],
+  fullName: string
+): { value: unknown } | undefined => {
+  const dotIndex = fullName.indexOf('.')
+  if (dotIndex === -1) return
+  const variable = variables.find(
+    (variable) => variable.name === fullName.slice(0, dotIndex)
+  )
+  if (!variable) return
+  if (typeof variable.value !== 'string') return { value: undefined }
+  try {
+    return {
+      value: getAtPath(
+        JSON.parse(variable.value),
+        fullName.slice(dotIndex + 1)
+      ),
+    }
+  } catch {
+    return { value: undefined }
+  }
+}
+
+const parseVariableValueInJson = (value: unknown) => {
   const stringifiedValue = JSON.stringify(value)
   if (typeof value === 'string') return stringifiedValue.slice(1, -1)
   return stringifiedValue

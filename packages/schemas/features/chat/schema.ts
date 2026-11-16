@@ -29,6 +29,13 @@ import { BubbleBlockType } from '../blocks/bubbles/constants'
 import { clientSideActionSchema } from './clientSideAction'
 import { ChatSession as ChatSessionFromPrisma } from '@typebot.io/prisma'
 
+const messageBodySchema = z
+  .record(z.unknown())
+  .optional()
+  .describe(
+    'Raw platform payload of the incoming message. Exposed to the bot as the `message_body` variable.'
+  )
+
 export const messageSchema = z.preprocess(
   (val) => (typeof val === 'string' ? { type: 'text', text: val } : val),
   z.discriminatedUnion('type', [
@@ -41,6 +48,7 @@ export const messageSchema = z.preprocess(
         .describe(
           'Can only be provided if current input block is a text input block that allows attachments'
         ),
+      messageBody: messageBodySchema,
     }),
     z.object({
       type: z.literal('location'),
@@ -52,6 +60,7 @@ export const messageSchema = z.preprocess(
       address: z.string().optional(),
       name: z.string().optional(),
       url: z.string().optional(),
+      messageBody: messageBodySchema,
     }),
   ])
 )
